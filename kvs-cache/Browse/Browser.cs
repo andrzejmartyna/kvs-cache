@@ -9,7 +9,8 @@ public class Browser
     public BrowseGeometry Geometry => _console.Geometry;
     
     private readonly ConsoleUi _console;
-    private readonly Action<BrowserItem, bool> _onEnter;
+    private readonly Action<BrowserItem> _onEnter;
+    private readonly Action<BrowserItem>? _onInfo;
 
     private readonly Rectangle _rectangle;
 
@@ -20,10 +21,11 @@ public class Browser
     private BrowseState _state;
     private readonly List<(string, object)> _allItems;
     
-    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem, bool> onEnter, string itemsName)
+    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem> onEnter, Action<BrowserItem>? onInfo, string itemsName)
     {
         _console = console;
         _onEnter = onEnter;
+        _onInfo = onInfo;
         _rectangle = _console.Geometry.BrowsingRectangle;
         _itemsName = itemsName;
 
@@ -40,7 +42,7 @@ public class Browser
 
         _state.SetSelection(0, 0);
         RedrawConsole();
-        var key = Console.ReadKey();
+        var key = Console.ReadKey(true);
         while (true)
         {
             if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
@@ -50,11 +52,17 @@ public class Browser
 
             switch (key.Key)
             {
+                case ConsoleKey.D:
+                    if (_onInfo != null && key.Modifiers.HasFlag(ConsoleModifiers.Control))
+                    {
+                        _onInfo(_state[_state.Selection.Selected]);
+                    }
+                    break;
                 case ConsoleKey.Enter:
                 case ConsoleKey.RightArrow:
                     if (_state.Count > 0)
                     {
-                        _onEnter(_state[_state.Selection.Selected], key.Modifiers.HasFlag(ConsoleModifiers.Alt));
+                        _onEnter(_state[_state.Selection.Selected]);
                     }
                     break;
                 case ConsoleKey.UpArrow:

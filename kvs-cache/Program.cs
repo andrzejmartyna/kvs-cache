@@ -15,4 +15,5 @@ Console.CancelKeyPress += delegate
 };
 
 //controller.DrawTestBoard();
+//controller.TestKeys();
 controller.Execute();

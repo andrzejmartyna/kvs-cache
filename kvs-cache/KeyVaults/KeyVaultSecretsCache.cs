@@ -1,5 +1,5 @@
-using System.Text.Json;
 using kcs_cache.Models;
+using Newtonsoft.Json;
 
 namespace kcs_cache.KeyVaults;
 
@@ -38,13 +38,13 @@ public class KeyVaultSecretsCache
     {
         if (File.Exists(filePath))
         {
-            return JsonSerializer.Deserialize<KeyVaultSecretsCache>(File.ReadAllText(filePath));
+            return JsonConvert.DeserializeObject<KeyVaultSecretsCache>(File.ReadAllText(filePath));
         }
         return null;
     }
 
     public void WriteCacheToFile(string filePath)
     {
-        File.WriteAllText(filePath, JsonSerializer.Serialize(this));
+        File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented));
     }
 }

@@ -1,18 +1,19 @@
 # MUST
 
+- refresh - asynchronous on start + progress indicator
+- refresh - asynchronous on demand + progress indicator
+- fix Json produced
+- asynchronous progress indicator while acquiring credentials
 - experiment toward faster Azure Credentials
 - Dockerfile
 - ReleaseNotes.md
 - README.md
 - Code cleanup
-- refresh - asynchronous on start + progress indicator
-- refresh - asynchronous on demand + progress indicator
-- asynchronous progress indicator while acquiring credentials
-- fix Json produced
 - version
 
 # SHOULD
 
+- Ctrl-D to full info about Subscription(s)/KeyVault/Secret - only then put it officially in documentation
 - UX - F1/Help
 - corner cases handled
 - URLs to Azure Portal resources in output Json
