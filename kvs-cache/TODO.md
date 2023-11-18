@@ -1,6 +1,5 @@
 # MUST
 
-- refresh - asynchronous on start + progress indicator
 - refresh - asynchronous on demand + progress indicator
 - asynchronous progress indicator while acquiring credentials
 - fix Json produced

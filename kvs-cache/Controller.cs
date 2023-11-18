@@ -20,18 +20,29 @@ public class Controller
         _console = new ConsoleUi(_geometry);
     }
 
+    private void ReadingSecrets()
+    {
+        var cacheFile = "kvs-cache.json";
+        _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
+    }
+    
     public void Execute()
     {
         Console.CursorVisible = false;
         
-        var cacheFile = "kvs-cache.json";
-        _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
-        
         InitialDraw();
-        BrowseSubscriptions();
-        OnExit();
         
-        Console.CursorVisible = true;
+        var taskReadingSecrets = new Task(ReadingSecrets);
+        var taskProgress = new Task(() => Progress.Run(_geometry.RefreshedRectangle, "Collecting information about secrets", taskReadingSecrets));
+        taskReadingSecrets.Start();
+        taskProgress.Start();
+        taskReadingSecrets.Wait();
+        taskProgress.Wait();
+
+        DrawStatistics();
+        BrowseSubscriptions();
+
+        OnExit();
     }
 
     private void BrowseSubscriptions()
@@ -123,7 +134,13 @@ public class Controller
     {
         _console.DrawDoubleRectangle(_geometry.Full);
         _console.DrawHorizontalLine(_geometry.DivideLine, true);
+        var tips = _geometry.TipsRectangle;
+        const string commands = "Ctrl-C Exit";
+        _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
+    }
 
+    private void DrawStatistics()
+    {
         var info = _geometry.SummaryRectangle;
         _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_currentCache.SubscriptionCount}");
         _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_currentCache.KeyVaultCount}");
@@ -131,12 +148,12 @@ public class Controller
 
         var refreshed = _geometry.RefreshedRectangle;
         var refreshedAt = $"Refreshed at {_currentCache.ReadStartedAt}";
-        _console.WriteAt(refreshed.Right - refreshedAt.Length, refreshed.Top, refreshedAt);
+        _console.WriteAt(refreshed.Right - refreshedAt.Length + 1, refreshed.Top, refreshedAt);
 
         var tips = _geometry.TipsRectangle;
         _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc");
         const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
-        _console.WriteAt(tips.Right - commands.Length, tips.Top, commands);
+        _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
     }
 
     public void OnExit()
@@ -145,5 +162,6 @@ public class Controller
         Console.SetCursorPosition(0,  _geometry.Full.Top + 1);
         Console.WriteLine("Thank you for using kvs-cache!");
         Console.WriteLine();
+        Console.CursorVisible = true;
     }
 }
