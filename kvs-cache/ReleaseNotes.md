@@ -7,7 +7,7 @@ kvs-cache is to provide great user experience of browsing Key Vault secrets and 
 ## 1.0
 
 This initial version of the tool:
-1. Works as a console application
+1. Works as a console application, uses 80 x 14 characters
 1. Finds all Subscriptions, Key vaults and secrets accessible
    - you must be logged into your Azure account
    - the information is cached for reuse on next kvs-cache runs

@@ -98,7 +98,7 @@ public class Controller
             var secretInfo = new SecretFullInfo(
                 new SubscriptionInfo(subscription?.Id, subscription?.Name),
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
-                new SecretInfo(secret.Name, secretValue));
+                new SecretInfo(secret.Name));
             Clipboard.SetText(JsonConvert.SerializeObject(secretInfo, Formatting.Indented));
             _console.Message("The clipboard was filled with full information about the secret.", _console.GreenMessage);
         }

@@ -2,7 +2,6 @@
 
 - refresh - asynchronous on demand with progress indicator
 - refresh - asynchronous on startup while able to use cache with progress indicator
-- fix Json produced
 - README.md
 
 # SHOULD
@@ -10,8 +9,9 @@
 - parametrize app settings
 - Set secret value
 - Get/set secret value using base64
-- Ctrl-D to full info about Subscription(s)/KeyVault/Secret - only then put it officially in documentation
+- Ctrl-D for full info about Subscription(s)/KeyVault/Secret - only then put it officially in documentation
   - URLs to Azure Portal resources in output Json
+  - fix Json produced
 - Code cleanup
 - seamless Azure Credentials inside docker container
 - corner cases handled (string too long)

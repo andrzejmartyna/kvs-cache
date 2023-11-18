@@ -10,7 +10,7 @@ public record KeyVaultInfo(string Name, string Url
 //             //{"AzurePortalUrl", KeyVaultSecretsRepository.BuildResourceAzurePortalUrl(subscription.TenantId, keyVault.Id)}
 );
 
-public record SecretInfo(string Name, string Value
+public record SecretInfo(string Name
 //             //TODO: find out why TenantId is null
 //             //{"AzurePortalUrl", KeyVaultSecretsRepository.BuildResourceAzurePortalUrl(subscription.TenantId, secret.Id)}
 );
