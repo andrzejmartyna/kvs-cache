@@ -21,7 +21,7 @@ public static class Progress
         var periodCounterDown = 5;
         var countDots = 0;
 
-        while (workingTask.Status < TaskStatus.RanToCompletion)
+        while (!workingTask.IsCompleted)
         {
             if (periodCounterDown > 0)
             {

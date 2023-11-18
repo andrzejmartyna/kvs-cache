@@ -11,9 +11,14 @@ public class BrowseState
     private readonly List<BrowserItem> _items = new List<BrowserItem>();
     private string _currentFilter = string.Empty;
 
-    public BrowseState(IEnumerable<(string, object)> items, BrowserItem? parentItem, string filter)
+    public CancellationToken CancellationToken { get; init; }
+    public ManualResetEvent RefreshEvent { get; init; }
+
+    public BrowseState(IEnumerable<(string, object)> items, BrowserItem? parentItem, string filter, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
     {
         Filter = filter;
+        CancellationToken = cancellationToken;
+        RefreshEvent = refreshEvent;
         
         var itemSorted = new SortedDictionary<string, object>(items.ToDictionary(a => a.Item1, a => a.Item2));
 

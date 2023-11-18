@@ -107,4 +107,17 @@ public class ConsoleUi
         }
         _uiBuffer.Flush();
     }
+
+    public static ConsoleKeyInfo ReadKeyNonBlocking(bool intercept, CancellationToken token)
+    {
+        while (!token.IsCancellationRequested)
+        {
+            if (Console.KeyAvailable)
+            {
+                return Console.ReadKey(intercept);
+            }
+            Thread.Sleep(100);
+        }
+        return new ConsoleKeyInfo();
+    }
 }

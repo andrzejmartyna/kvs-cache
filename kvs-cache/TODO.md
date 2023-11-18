@@ -18,6 +18,7 @@
 
 # COULD
 
+- after refresh is done apply the selection existed just before the reload (now the refresh restarts browsing)
 - Generate command to get/set value using scripts like Powershell, bash
 - show age of cache
 - enter/browse versions of a secret

@@ -9,7 +9,7 @@ public class Browser
     public BrowseGeometry Geometry => _console.Geometry;
     
     private readonly ConsoleUi _console;
-    private readonly Action<BrowserItem> _onEnter;
+    private readonly Action<BrowserItem, CancellationToken, ManualResetEvent> _onEnter;
     private readonly Action<BrowserItem>? _onInfo;
     private readonly bool _exitOnLeft;
 
@@ -22,7 +22,7 @@ public class Browser
     private BrowseState _state;
     private readonly List<(string, object)> _allItems;
     
-    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem> onEnter, Action<BrowserItem>? onInfo, bool exitOnLeft, string itemsName)
+    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem, CancellationToken, ManualResetEvent> onEnter, Action<BrowserItem>? onInfo, bool exitOnLeft, string itemsName, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
     {
         _console = console;
         _onEnter = onEnter;
@@ -33,7 +33,7 @@ public class Browser
 
         _parent = parentItem;
         _allItems = items.ToList();
-        _state = new BrowseState(_allItems, _parent, string.Empty);
+        _state = new BrowseState(_allItems, _parent, string.Empty, cancellationToken, refreshEvent);
     }
 
     public void Browse()
@@ -44,8 +44,8 @@ public class Browser
 
         _state.SetSelection(0, 0);
         RedrawConsole();
-        var key = Console.ReadKey(true);
-        while (true)
+        var key = ConsoleUi.ReadKeyNonBlocking(true, _state.CancellationToken);
+        while (!_state.CancellationToken.IsCancellationRequested)
         {
             if (key.Key is ConsoleKey.Escape || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
             {
@@ -60,11 +60,17 @@ public class Browser
                         _onInfo(_state[_state.Selection.Selected]);
                     }
                     break;
+                case ConsoleKey.R:
+                    if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+                    {
+                        _state.RefreshEvent.Set();
+                    }
+                    break;
                 case ConsoleKey.Enter:
                 case ConsoleKey.RightArrow:
                     if (_state.Count > 0)
                     {
-                        _onEnter(_state[_state.Selection.Selected]);
+                        _onEnter(_state[_state.Selection.Selected], _state.CancellationToken, _state.RefreshEvent);
                     }
                     break;
                 case ConsoleKey.UpArrow:
@@ -138,7 +144,7 @@ public class Browser
                     break;
             }
             
-            key = Console.ReadKey(true);
+            key = ConsoleUi.ReadKeyNonBlocking(true, _state.CancellationToken);
         }
 
         _console.PopSnapshot();
@@ -155,7 +161,7 @@ public class Browser
         {
             if (string.IsNullOrWhiteSpace(newFilter))
             {
-                newState = new BrowseState(_allItems, _parent, newFilter);
+                newState = new BrowseState(_allItems, _parent, newFilter, _state.CancellationToken, _state.RefreshEvent);
             }
             else
             {
@@ -172,7 +178,7 @@ public class Browser
                         }
                     }
                 }
-                newState = new BrowseState(filtered, _parent, newFilter);
+                newState = new BrowseState(filtered, _parent, newFilter, _state.CancellationToken, _state.RefreshEvent);
             }
         }
 

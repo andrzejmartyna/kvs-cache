@@ -24,6 +24,7 @@ public class Controller
     {
         var cacheFile = "kvs-cache.json";
         _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
+        Thread.Sleep(4000);
     }
     
     public void Execute()
@@ -32,7 +33,7 @@ public class Controller
         
         InitialDraw();
         
-        Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Collecting new information about secrets");
+        Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
 
         DrawStatistics();
         BrowseSubscriptions();
@@ -42,22 +43,58 @@ public class Controller
 
     private void BrowseSubscriptions()
     {
-        new Browser(_console, _currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null, BrowseKeyVaults, null, false, "Subscriptions").Browse();
+        var refreshEvent = new ManualResetEvent(false);
+        while (true)
+        {
+            var cts = new CancellationTokenSource();
+            var token = cts.Token;
+
+            var browsingTcs = new TaskCompletionSource<bool>();
+            var browsingTask = Task.Run(() =>
+            {
+                //TODO: apply previous user selection after refresh
+                new Browser(_console, _currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null, BrowseKeyVaults, null, false, "Subscriptions", token, refreshEvent).Browse();
+                browsingTcs.SetResult(true);
+            }, token);
+
+            var  browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
+            var exitOrRefresh = WaitHandle.WaitAny(new[] { browsingWaitHandle, refreshEvent });
+            if (0 == exitOrRefresh)
+            {
+                break;
+            }
+            
+            var refreshTask = Task.Run(() =>
+            {
+                Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Reading");
+            }, token);
+
+            var exitOrRefreshed = Task.WaitAny(browsingTask, refreshTask);
+            cts.Cancel();
+            if (0 == exitOrRefreshed)
+            {
+                refreshTask.Wait();
+                break;
+            }
+
+            refreshEvent.Reset();
+            browsingTask.Wait();
+        }
     }
 
-    private void BrowseKeyVaults(BrowserItem selected)
+    private void BrowseKeyVaults(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(a => (a.Name, (object)a))), selected, BrowseSecrets, null, true, "KeyVaults").Browse();
+        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(b => (b.Name, (object)b))), selected, BrowseSecrets, null, true, "KeyVaults", cancellationToken, refreshEvent).Browse();
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
-    private void BrowseSecrets(BrowserItem selected)
+    private void BrowseSecrets(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(a => a.Secrets.Select(a => (a.Name, (object)a)))), selected, ReadSecretValue, InfoSecretValue, true, "Secrets").Browse();
+        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(b => b.Secrets.Select(c => (c.Name, (object)c)))), selected, ReadSecretValue, InfoSecretValue, true, "Secrets", cancellationToken, refreshEvent).Browse();
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
@@ -66,7 +103,7 @@ public class Controller
         InfoOrReadSecretValue(selected, true);
     }
 
-    private void ReadSecretValue(BrowserItem selected)
+    private void ReadSecretValue(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
     {
         InfoOrReadSecretValue(selected, false);
     }
@@ -83,11 +120,6 @@ public class Controller
             return;
         }
 
-        var taskReading = new Task(() =>
-        {
-            secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
-        });
-        
         Progress.Run(() =>
         {
             secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);

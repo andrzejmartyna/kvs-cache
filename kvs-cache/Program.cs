@@ -14,6 +14,18 @@ Console.CancelKeyPress += delegate
     controller.OnExit();
 };
 
-//controller.DrawTestBoard();
-//controller.TestKeys();
+if (args.Length > 0)
+{
+    switch (args[0])
+    {
+        case "--testboard":
+            controller.DrawTestBoard();
+            break;
+        case "--testkeys":
+            controller.TestKeys();;
+            break;
+    }
+    return;
+}
+
 controller.Execute();
