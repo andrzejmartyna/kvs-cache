@@ -76,20 +76,24 @@ public class Browser
                 break;
             }
 
+            if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+            {
+                switch (key.Key)
+                {
+                    case ConsoleKey.D:
+                        _onInfo?.Invoke(_state.Selected);
+                        break;
+                    case ConsoleKey.R:
+                        _context.RefreshEvent.Set();
+                        break;
+                }
+                
+                key = ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
+                continue;
+            }
+
             switch (key.Key)
             {
-                case ConsoleKey.D:
-                    if (_onInfo != null && key.Modifiers.HasFlag(ConsoleModifiers.Control))
-                    {
-                        _onInfo(_state.Selected);
-                    }
-                    break;
-                case ConsoleKey.R:
-                    if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
-                    {
-                        _context.RefreshEvent.Set();
-                    }
-                    break;
                 case ConsoleKey.Enter:
                 case ConsoleKey.RightArrow:
                     if (_state.Count > 0)
