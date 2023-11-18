@@ -132,6 +132,11 @@ public class KeyVaultSecretsRepository
         {
             return secretClient.GetSecret(secretName).Value.Value;
         }
+        catch (AuthenticationFailedException)
+        {
+            //TODO: what a shame to eat exception
+            return "Error reading secret";
+        }
         catch (RequestFailedException)
         {
             //TODO: what a shame to eat exception
