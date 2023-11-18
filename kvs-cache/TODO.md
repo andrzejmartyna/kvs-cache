@@ -1,7 +1,7 @@
 # MUST
 
-- refresh - asynchronous on demand + progress indicator
-- asynchronous progress indicator while acquiring credentials
+- refresh - asynchronous on demand with progress indicator
+- refresh - asynchronous on startup while able to use cache with progress indicator
 - fix Json produced
 - seamless Azure Credentials inside docker container
 - ReleaseNotes.md

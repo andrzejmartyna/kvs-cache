@@ -33,7 +33,7 @@ public class Controller
         InitialDraw();
         
         var taskReadingSecrets = new Task(ReadingSecrets);
-        var taskProgress = new Task(() => Progress.Run(_geometry.RefreshedRectangle, "Collecting information about secrets", taskReadingSecrets));
+        var taskProgress = new Task(() => Progress.Run(_geometry.RefreshedRectangle, "Collecting new information about secrets", taskReadingSecrets));
         taskReadingSecrets.Start();
         taskProgress.Start();
         taskReadingSecrets.Wait();
@@ -81,14 +81,24 @@ public class Controller
         var subscription = (Subscription?)selected.Parent?.Parent?.Items[0];
         var keyVault = (KeyVault?)selected.Parent?.Items[0];
         var secret = (Secret)selected.Items[0];
+        var secretValue = string.Empty;
         if (keyVault == null)
         {
             _console.Message($"Internal error - no KeyVault found for the {secret.Name} secret", _console.RedMessage);
             return;
         }
 
-        var secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
-
+        var taskReading = new Task(() =>
+        {
+            secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
+        });
+        
+        var taskProgress = new Task(() => Progress.Run(_geometry.ReadingProgressRectangle, "Reading", taskReading));
+        taskReading.Start();
+        taskProgress.Start();
+        taskReading.Wait();
+        taskProgress.Wait();
+        
         if (info)
         {
             var secretInfo = new SecretFullInfo(
@@ -112,6 +122,7 @@ public class Controller
         _console.FillRectangle(_geometry.SummaryRectangle, 's');
         _console.FillRectangle(_geometry.SelectionRectangle, 'x');
         _console.FillRectangle(_geometry.RefreshedRectangle, 'r');
+        _console.FillRectangle(_geometry.ReadingProgressRectangle, '%');
         _console.FillRectangle(_geometry.BrowsingRectangle, '.');
         _console.FillRectangle(_geometry.TipsRectangle, 't');
         _console.FillRectangle(_geometry.SelectionHeaderLine.Rectangle, 'u');
