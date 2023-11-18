@@ -7,6 +7,26 @@ using kcs_cache;
 var cacheFile = "kcs-cache.json";
 var currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1));
 
+var console = new ConsoleUi(80, 20);
+
+console.DrawDoubleRectangle(0, 0, console.Width - 1, console.Height - 1);
+console.DrawHorizontalLine(1, 4, console.Width - 2);
+console.WriteAt(2, 1, $"Subscriptions: {currentCache.Entries.Select(a => a.Subscription).Distinct().Count()}");
+console.WriteAt(2, 2, $"   Key vaults: {currentCache.Entries.Select(a => a.KeyVault).Distinct().Count()}");
+console.WriteAt(2, 3, $"      Secrets: {currentCache.Entries.Count}");
+var refreshedAt = $"Refreshed at {currentCache.ReadStartedAt}";
+console.WriteAt(console.Width - refreshedAt.Length - 2, 3, refreshedAt);
+console.WriteAt(2, console.Height - 2, "Filter / Up / Down / Enter / Esc");
+const string commands = "Ctrl-R - refresh / Ctrl-C - exit";
+console.WriteAt(console.Width - commands.Length - 2, console.Height - 2, commands);
+
+const string filter = "Filter: ";
+var filterPosition = ( filter.Length + 2, 2 );
+console.WriteAt(2, 5, filter);
+console.MoveTo(filterPosition.Item1, filterPosition.Item2);
+
+console.MoveTo(1, console.Height);
+
 Console.WriteLine($"Key vaults secrets gathered at: {currentCache.ReadStartedAt}");
 Console.WriteLine($"Found {currentCache.Entries.Count} secrets in {currentCache.Entries.Select(a => a.KeyVault).Distinct().Count()} Key Vault(s) in {currentCache.Entries.Select(a => a.Subscription).Distinct().Count()} subscription(s)");
 
