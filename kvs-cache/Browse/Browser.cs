@@ -11,6 +11,7 @@ public class Browser
     private readonly ConsoleUi _console;
     private readonly Action<BrowserItem> _onEnter;
     private readonly Action<BrowserItem>? _onInfo;
+    private readonly bool _exitOnLeft;
 
     private readonly Rectangle _rectangle;
 
@@ -21,11 +22,12 @@ public class Browser
     private BrowseState _state;
     private readonly List<(string, object)> _allItems;
     
-    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem> onEnter, Action<BrowserItem>? onInfo, string itemsName)
+    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem> onEnter, Action<BrowserItem>? onInfo, bool exitOnLeft, string itemsName)
     {
         _console = console;
         _onEnter = onEnter;
         _onInfo = onInfo;
+        _exitOnLeft = exitOnLeft;
         _rectangle = _console.Geometry.BrowsingRectangle;
         _itemsName = itemsName;
 
@@ -45,7 +47,7 @@ public class Browser
         var key = Console.ReadKey(true);
         while (true)
         {
-            if (key.Key is ConsoleKey.Escape or ConsoleKey.LeftArrow)
+            if (key.Key is ConsoleKey.Escape || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
             {
                 break;
             }

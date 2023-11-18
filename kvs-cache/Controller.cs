@@ -36,14 +36,14 @@ public class Controller
 
     private void BrowseSubscriptions()
     {
-        new Browser(_console, _currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null, BrowseKeyVaults, null, "Subscriptions").Browse();
+        new Browser(_console, _currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null, BrowseKeyVaults, null, false, "Subscriptions").Browse();
     }
 
     private void BrowseKeyVaults(BrowserItem selected)
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(a => (a.Name, (object)a))), selected, BrowseSecrets, null, "KeyVaults").Browse();
+        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(a => (a.Name, (object)a))), selected, BrowseSecrets, null, true, "KeyVaults").Browse();
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
@@ -51,7 +51,7 @@ public class Controller
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(a => a.Secrets.Select(a => (a.Name, (object)a)))), selected, ReadSecretValue, InfoSecretValue, "Secrets").Browse();
+        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(a => a.Secrets.Select(a => (a.Name, (object)a)))), selected, ReadSecretValue, InfoSecretValue, true, "Secrets").Browse();
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
