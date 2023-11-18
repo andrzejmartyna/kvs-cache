@@ -1,25 +1,28 @@
-# MUST 1.0
+# MUST 1.1
 
-- refresh - asynchronous on startup while able to use cache with progress indicator
-- README.md
+- operation/context menu on secret/KV/subscription
+  - Set secret value
+  - Get/set secret value using base64
+  - full info in Json about Subscription(s)/KeyVault/Secret
+    - URLs to Azure Portal resources in output Json
+  - Generate command to get/set value using scripts like Powershell, bash
+- corner cases handled (string too long)
+- code cleanup
+- ready to use distribution (1.0 requires .NET SDK and building)
+- provide CHANGELOG.md, versioning and tags as good projects do
+- clarify Feedback / contribution / communication
+  - is my e-mail accessible?
+  - is this valid: [this way](https://stackoverflow.com/a/49277449/669692)?
 
 # SHOULD
 
 - parametrize app settings
-- Set secret value
-- Get/set secret value using base64
-- Ctrl-D for full info about Subscription(s)/KeyVault/Secret - only then put it officially in documentation
-  - URLs to Azure Portal resources in output Json
-  - fix Json produced
-- Code cleanup
-- seamless Azure Credentials inside docker container
-- corner cases handled (string too long)
+- work from inside Docker including seamless Azure credentials handling
+- show age of cache
+- fix bug: Ctrl-C on the message does not work immediately but after exiting the message using another key
 
 # COULD
 
-- after refresh is done apply the selection existed just before the reload (now the refresh restarts browsing)
-- Generate command to get/set value using scripts like Powershell, bash
-- show age of cache
 - enter/browse versions of a secret
 - Recent
 - Favorites
@@ -30,4 +33,4 @@
 
 # WILL NOT
 
-- search through all objects (probably very good, useful instant filter is more than enough for kvs-cache)
+- search through all objects (I bet instant filtering is more than enough for kvs-cache)

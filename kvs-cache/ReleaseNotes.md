@@ -1,13 +1,11 @@
-# Vision
+# Future
 
-kvs-cache is to provide great user experience of browsing Key Vault secrets and handling their values.
+A rough plan for future versions is here: [TODO.md](TODO.md)
 
-# Versions
-
-## 1.0
+# 1.0
 
 This initial version of the tool:
-1. Works as a console application, uses 80 x 14 characters
+1. Works as a console application
 1. Finds all Subscriptions, Key vaults and secrets accessible
    - you must be logged into your Azure account
    - the information is cached for reuse on next kvs-cache runs
@@ -25,3 +23,6 @@ This initial version of the tool:
      - by pressing Ctrl-R
      - by removing the cache file and rerun kvs-cache
      - automatically after hard coded value of 24h
+
+_The version 1.0 was made from 2023-10-28 to 2023-11-18._  
+_Working hours spent: 34._
