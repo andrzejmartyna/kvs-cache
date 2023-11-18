@@ -16,7 +16,7 @@ if (currentHeight < minHeight || currentWidth < minHeight)
 }
 
 var height = Math.Min(currentHeight, optimalHeight);
-for (var i = 0; i < height; ++i)
+for (var i = 0; i <= height; ++i)
 {
     Console.WriteLine();
 }

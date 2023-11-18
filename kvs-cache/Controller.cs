@@ -9,7 +9,10 @@ namespace kcs_cache;
 
 public class Controller
 {
-    private KeyVaultSecretsCache _currentCache = new();
+    private string _cacheFile = "kvs-cache.json";
+    private TimeSpan _cacheMaxAge = new TimeSpan(1, 0, 0, 0);
+
+    private KeyVaultSecretsCache? _currentCache;
     private readonly ConsoleUi _console;
     private readonly BrowseGeometry _geometry;
     private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
@@ -23,10 +26,12 @@ public class Controller
         _console = new ConsoleUi(_geometry);
     }
 
-    private void ReadingSecrets()
+    private void CacheOrReadSecrets() => ReadingSecrets(_cacheMaxAge);
+    private void RereadSecrets() => ReadingSecrets(new TimeSpan());
+
+    private void ReadingSecrets(TimeSpan maxAge)
     {
-        var cacheFile = "kvs-cache.json";
-        _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
+        _currentCache = KeyVaultSecretsCache.ObtainValidCache(_cacheFile, maxAge, _keyVaultSecretsRepository);
         if (_testSleepInfo > 0)
         {
             Thread.Sleep(_testSleepInfo);
@@ -47,7 +52,11 @@ public class Controller
         
         InitialDraw();
         
-        Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
+        _currentCache = KeyVaultSecretsCache.ReadCacheFromFile(_cacheFile);
+        if (_currentCache == null)
+        {
+            Progress.Run(CacheOrReadSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
+        }
 
         BrowseSubscriptions();
 
@@ -56,14 +65,22 @@ public class Controller
 
     private void BrowseSubscriptions()
     {
+        if (_currentCache == null) return;
+        
         var refreshEvent = new ManualResetEvent(false);
         var browsingContext = new BrowseContext(_console, refreshEvent);
         browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, null, "Subscriptions", false));
         browsingContext.AddBrowser(new Browser(browsingContext, BrowseSecrets, null, "KeyVaults", true));
         browsingContext.AddBrowser(new Browser(browsingContext, ReadSecretValue, InfoSecretValue, "Secrets", true));
+        
         while (true)
         {
             DrawStatistics();
+
+            if (!_currentCache.IsValidAge(_cacheMaxAge))
+            {
+                refreshEvent.Set();
+            }
 
             var cts = new CancellationTokenSource();
             browsingContext.SetCancelationToken(cts.Token);
@@ -90,7 +107,7 @@ public class Controller
             var refreshTcs = new TaskCompletionSource<bool>();
             var refreshTask = Task.Run(() =>
             {
-                Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Reading");
+                Progress.Run(RereadSecrets, _console, _geometry.RefreshedRectangle, "Reading");
                 refreshTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -114,6 +131,8 @@ public class Controller
 
     private void BrowseKeyVaults(BrowserItem selected, BrowseContext context)
     {
+        if (_currentCache == null) return;
+        
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
         context[1].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(b => (b.Name, (object)b))), selected);
@@ -122,6 +141,8 @@ public class Controller
 
     private void BrowseSecrets(BrowserItem selected, BrowseContext context)
     {
+        if (_currentCache == null) return;
+
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
         context[2].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(b => b.Secrets.Select(c => (c.Name, (object)c)))), selected);
@@ -218,6 +239,8 @@ public class Controller
 
     private void DrawStatistics()
     {
+        if (_currentCache == null) return;
+
         var info = _geometry.SummaryRectangle;
         _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_currentCache.SubscriptionCount}");
         _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_currentCache.KeyVaultCount}");

@@ -44,14 +44,15 @@ public class Browser
         if (_state == null)
         {
             _state = new BrowseState(_allItems, _parent, string.Empty);
+            ApplyFilter(_state.Filter);
         }
         else
         {
             _state.ResetItems(_allItems, parentItem);
             _filteredStates = new Dictionary<string, BrowseState>();
+            ApplyFilter(_state.Filter);
+            _state.Entered = enterPreviousSelection;
         }
-
-        ApplyFilter(_state.Filter);
 
         RedrawConsole();
         var key = enterPreviousSelection ? new ConsoleKeyInfo() : ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
