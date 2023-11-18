@@ -2,10 +2,9 @@
 
 - refresh - asynchronous on start + progress indicator
 - refresh - asynchronous on demand + progress indicator
-- fix Json produced
 - asynchronous progress indicator while acquiring credentials
-- experiment toward faster Azure Credentials
-- Dockerfile
+- fix Json produced
+- seamless Azure Credentials inside docker container
 - ReleaseNotes.md
 - README.md
 - Code cleanup
