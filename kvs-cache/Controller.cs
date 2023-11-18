@@ -13,6 +13,7 @@ public class Controller
     private readonly ConsoleUi _console;
     private readonly BrowseGeometry _geometry;
     private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
+    private readonly ManualResetEvent _breakPressed = new(false);
 
     public Controller(Rectangle operationRectangle)
     {
@@ -24,7 +25,12 @@ public class Controller
     {
         var cacheFile = "kvs-cache.json";
         _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
-        Thread.Sleep(4000);
+        Thread.Sleep(2000);
+    }
+
+    public void Break()
+    {
+        _breakPressed.Set();
     }
     
     public void Execute()
@@ -35,7 +41,6 @@ public class Controller
         
         Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
 
-        DrawStatistics();
         BrowseSubscriptions();
 
         OnExit();
@@ -44,35 +49,52 @@ public class Controller
     private void BrowseSubscriptions()
     {
         var refreshEvent = new ManualResetEvent(false);
+        var browsingContext = new BrowseContext(_console, refreshEvent);
+        browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, null, "Subscriptions", false));
+        browsingContext.AddBrowser(new Browser(browsingContext, BrowseSecrets, null, "KeyVaults", true));
+        browsingContext.AddBrowser(new Browser(browsingContext, ReadSecretValue, InfoSecretValue, "Secrets", true));
         while (true)
         {
+            DrawStatistics();
+
             var cts = new CancellationTokenSource();
-            var token = cts.Token;
+            browsingContext.SetCancelationToken(cts.Token);
 
             var browsingTcs = new TaskCompletionSource<bool>();
             var browsingTask = Task.Run(() =>
             {
-                //TODO: apply previous user selection after refresh
-                new Browser(_console, _currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null, BrowseKeyVaults, null, false, "Subscriptions", token, refreshEvent).Browse();
+                browsingContext[0].Browse(_currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null);
                 browsingTcs.SetResult(true);
-            }, token);
+            }, browsingContext.CancellationToken);
 
             var  browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
-            var exitOrRefresh = WaitHandle.WaitAny(new[] { browsingWaitHandle, refreshEvent });
-            if (0 == exitOrRefresh)
+            var exitOrRefresh = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed, refreshEvent });
+            if (exitOrRefresh <= 1)
             {
+                if (exitOrRefresh == 1)
+                {
+                    cts.Cancel();
+                    browsingTask.Wait();
+                }
                 break;
             }
             
+            var refreshTcs = new TaskCompletionSource<bool>();
             var refreshTask = Task.Run(() =>
             {
                 Progress.Run(ReadingSecrets, _console, _geometry.RefreshedRectangle, "Reading");
-            }, token);
+                refreshTcs.SetResult(true);
+            }, browsingContext.CancellationToken);
 
-            var exitOrRefreshed = Task.WaitAny(browsingTask, refreshTask);
+            var  refreshWaitHandle = ((IAsyncResult)refreshTcs.Task).AsyncWaitHandle;
+            var exitOrRefreshed = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed, refreshWaitHandle });
             cts.Cancel();
-            if (0 == exitOrRefreshed)
+            if (exitOrRefreshed <= 1)
             {
+                if (exitOrRefreshed == 1)
+                {
+                    browsingTask.Wait();
+                }
                 refreshTask.Wait();
                 break;
             }
@@ -82,19 +104,19 @@ public class Controller
         }
     }
 
-    private void BrowseKeyVaults(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
+    private void BrowseKeyVaults(BrowserItem selected, BrowseContext context)
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(b => (b.Name, (object)b))), selected, BrowseSecrets, null, true, "KeyVaults", cancellationToken, refreshEvent).Browse();
+        context[1].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(b => (b.Name, (object)b))), selected);
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
-    private void BrowseSecrets(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
+    private void BrowseSecrets(BrowserItem selected, BrowseContext context)
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(b => b.Secrets.Select(c => (c.Name, (object)c)))), selected, ReadSecretValue, InfoSecretValue, true, "Secrets", cancellationToken, refreshEvent).Browse();
+        context[2].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(b => b.Secrets.Select(c => (c.Name, (object)c)))), selected);
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
@@ -103,7 +125,7 @@ public class Controller
         InfoOrReadSecretValue(selected, true);
     }
 
-    private void ReadSecretValue(BrowserItem selected, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
+    private void ReadSecretValue(BrowserItem selected, BrowseContext context)
     {
         InfoOrReadSecretValue(selected, false);
     }
@@ -199,7 +221,7 @@ public class Controller
         _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
     }
 
-    public void OnExit()
+    private void OnExit()
     {
         _console.FillRectangle(_geometry.Full, ' ');
         Console.SetCursorPosition(0,  _geometry.Full.Top + 1);

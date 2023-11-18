@@ -6,10 +6,12 @@ namespace kcs_cache.Browse;
 
 public class Browser
 {
-    public BrowseGeometry Geometry => _console.Geometry;
+    public BrowseGeometry Geometry => _context.Console.Geometry;
+
+    private readonly BrowseContext _context;
+    private BrowseState? _state;
     
-    private readonly ConsoleUi _console;
-    private readonly Action<BrowserItem, CancellationToken, ManualResetEvent> _onEnter;
+    private readonly Action<BrowserItem, BrowseContext> _onEnter;
     private readonly Action<BrowserItem>? _onInfo;
     private readonly bool _exitOnLeft;
 
@@ -18,35 +20,56 @@ public class Browser
     private readonly string _itemsName;
 
     private BrowserItem? _parent;
-    private readonly Dictionary<string, BrowseState> _filteredStates = new Dictionary<string, BrowseState>();
-    private BrowseState _state;
-    private readonly List<(string, object)> _allItems;
+    private Dictionary<string, BrowseState> _filteredStates = new();
+    private List<(string, object)> _allItems = new();
     
-    public Browser(ConsoleUi console, IEnumerable<(string, object)> items, BrowserItem? parentItem, Action<BrowserItem, CancellationToken, ManualResetEvent> onEnter, Action<BrowserItem>? onInfo, bool exitOnLeft, string itemsName, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
+    public Browser(BrowseContext context, Action<BrowserItem, BrowseContext> onEnter, Action<BrowserItem>? onInfo, string itemsName, bool exitOnLeft)
     {
-        _console = console;
+        _context = context;
+        _exitOnLeft = exitOnLeft;
         _onEnter = onEnter;
         _onInfo = onInfo;
-        _exitOnLeft = exitOnLeft;
-        _rectangle = _console.Geometry.BrowsingRectangle;
+        _rectangle = _context.Console.Geometry.BrowsingRectangle;
         _itemsName = itemsName;
-
-        _parent = parentItem;
-        _allItems = items.ToList();
-        _state = new BrowseState(_allItems, _parent, string.Empty, cancellationToken, refreshEvent);
     }
 
-    public void Browse()
+    public void Browse(IEnumerable<(string, object)> items, BrowserItem? parentItem)
     {
-        _console.PushSnapshot();
-        
-        ApplyFilter(string.Empty);
+        _context.Console.PushSnapshot();
 
-        _state.SetSelection(0, 0);
-        RedrawConsole();
-        var key = ConsoleUi.ReadKeyNonBlocking(true, _state.CancellationToken);
-        while (!_state.CancellationToken.IsCancellationRequested)
+        var enterPreviousSelection = _state is { Count: > 0, Entered: true } && _allItems.Any(a => 0 == string.Compare(a.Item1, _state.Selected.DisplayName, StringComparison.InvariantCultureIgnoreCase));
+        _parent = parentItem;
+        _allItems = items.ToList();
+        
+        if (_state == null)
         {
+            _state = new BrowseState(_allItems, _parent, string.Empty);
+        }
+        else
+        {
+            _state.ResetItems(_allItems, parentItem);
+            _filteredStates = new Dictionary<string, BrowseState>();
+        }
+
+        ApplyFilter(_state.Filter);
+
+        RedrawConsole();
+        var key = enterPreviousSelection ? new ConsoleKeyInfo() : ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
+        while (!_context.CancellationToken.IsCancellationRequested)
+        {
+            if (enterPreviousSelection)
+            {
+                enterPreviousSelection = false;
+                _onEnter(_state.Selected, _context);
+                if (_context.CancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                _state.Entered = false;
+                key = ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
+                continue;
+            }
+
             if (key.Key is ConsoleKey.Escape || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
             {
                 break;
@@ -57,20 +80,25 @@ public class Browser
                 case ConsoleKey.D:
                     if (_onInfo != null && key.Modifiers.HasFlag(ConsoleModifiers.Control))
                     {
-                        _onInfo(_state[_state.Selection.Selected]);
+                        _onInfo(_state.Selected);
                     }
                     break;
                 case ConsoleKey.R:
                     if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
                     {
-                        _state.RefreshEvent.Set();
+                        _context.RefreshEvent.Set();
                     }
                     break;
                 case ConsoleKey.Enter:
                 case ConsoleKey.RightArrow:
                     if (_state.Count > 0)
                     {
-                        _onEnter(_state[_state.Selection.Selected], _state.CancellationToken, _state.RefreshEvent);
+                        _state.Entered = true;
+                        _onEnter(_state.Selected, _context);
+                        if (!_context.CancellationToken.IsCancellationRequested)
+                        {
+                            _state.Entered = false;
+                        }
                     }
                     break;
                 case ConsoleKey.UpArrow:
@@ -144,41 +172,46 @@ public class Browser
                     break;
             }
             
-            key = ConsoleUi.ReadKeyNonBlocking(true, _state.CancellationToken);
+            key = ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
         }
 
-        _console.PopSnapshot();
+        _context.Console.PopSnapshot();
     }
 
-    private static string CleanFilter(string filter) => Regex.Replace(filter, @"\s+", " ");
+    private static string CleanFilter(string? filter) => string.IsNullOrWhiteSpace(filter) ? string.Empty : Regex.Replace(filter, @"\s+", " ");
     
-    private static string[] SplitFilter(string filter) => CleanFilter(filter).Split(' ', StringSplitOptions.RemoveEmptyEntries); 
-    
-    private void ApplyFilter(string newFilter)
+    private static string[] SplitFilter(string filter) => CleanFilter(filter).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    private static bool ItemShouldBeVisible(string itemName, string filter)
+        => string.IsNullOrWhiteSpace(filter) || ItemShouldBeVisible(itemName, SplitFilter(filter));
+
+    private static bool ItemShouldBeVisible(string itemName, IEnumerable<string> words)
     {
+        foreach (var word in words)
+        {
+            if (itemName.Contains(word, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private void ApplyFilter(string? newFilter)
+    {
+        if (_state == null) return;
+        
         newFilter = CleanFilter(newFilter);
         if (!_filteredStates.TryGetValue(newFilter, out var newState))
         {
             if (string.IsNullOrWhiteSpace(newFilter))
             {
-                newState = new BrowseState(_allItems, _parent, newFilter, _state.CancellationToken, _state.RefreshEvent);
+                newState = new BrowseState(_allItems, _parent, newFilter);
             }
             else
             {
-                var filtered = new List<(string, object)>();
                 var words = SplitFilter(newFilter);
-                foreach (var item in _allItems)
-                {
-                    foreach (var word in words)
-                    {
-                        if (item.Item1.Contains(word, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            filtered.Add(item);
-                            break;
-                        }
-                    }
-                }
-                newState = new BrowseState(filtered, _parent, newFilter, _state.CancellationToken, _state.RefreshEvent);
+                newState = new BrowseState(_allItems.Where(item => ItemShouldBeVisible(item.Item1, words)).ToList(), _parent, newFilter);
             }
         }
 
@@ -186,28 +219,28 @@ public class Browser
         _state = newState;
 
         var header = Geometry.SelectionHeaderLine;
-        _console.DrawHorizontalLine(header, false);
+        _context.Console.DrawHorizontalLine(header, false);
         if (_state.Count <= 0)
         {
-            _console.WriteAt(header.Left, header.Top, $"No {_itemsName} found");
+            _context.Console.WriteAt(header.Left, header.Top, $"No {_itemsName} found");
         }
         else
         {
-            _console.WriteAt(header.Left, header.Top, $"{_itemsName} found:");
+            _context.Console.WriteAt(header.Left, header.Top, $"{_itemsName} found:");
         }
 
         if (!string.IsNullOrWhiteSpace(_state.Filter))
         {
-            _console.Write(" (filtered by");
+            _context.Console.Write(" (filtered by");
             if (SplitFilter(_state.Filter).Length > 1)
             {
-                _console.Write(" any of");
+                _context.Console.Write(" any of");
             }
-            _console.Write(": ");
-            _console.SetColors(_console.Red);
-            _console.Write(CleanFilter(_state.Filter));
-            _console.SetDefaultColors();
-            _console.Write(")");
+            _context.Console.Write(": ");
+            _context.Console.SetColors(_context.Console.Red);
+            _context.Console.Write(CleanFilter(_state.Filter));
+            _context.Console.SetDefaultColors();
+            _context.Console.Write(")");
         }
 
         RedrawConsole();
@@ -215,29 +248,33 @@ public class Browser
 
     private void ChangeSelectionTo(int newSelection)
     {
-        _console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state[_state.Selection.Selected].DisplayName);
-        _console.SetColors(_console.Highlighted);
-        _console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
-        _console.SetDefaultColors();
+        if (_state == null) return;
+
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state.Selected.DisplayName);
+        _context.Console.SetColors(_context.Console.Highlighted);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
+        _context.Console.SetDefaultColors();
         
         _state.SetSelection(_state.Selection.FirstDisplayed, newSelection);
     }
 
     private void RedrawConsole()
     {
-        _console.FillRectangle(_rectangle, ' ');
+        if (_state == null) return;
+
+        _context.Console.FillRectangle(_rectangle, ' ');
         
         var idx = 0;
         for (var y = _state.Selection.FirstDisplayed; y < _state.Count && idx < _rectangle.Height; ++y, ++idx)
         {
             if (y == _state.Selection.Selected)
             {
-                _console.SetColors(_console.Highlighted);
+                _context.Console.SetColors(_context.Console.Highlighted);
             }
-            _console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[idx].DisplayName);
+            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[idx].DisplayName);
             if (y == _state.Selection.Selected)
             {
-                _console.SetDefaultColors();
+                _context.Console.SetDefaultColors();
             }
         }
     }

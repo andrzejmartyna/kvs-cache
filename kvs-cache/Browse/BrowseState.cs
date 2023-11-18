@@ -6,32 +6,34 @@ public class BrowseState
 
     public int Count => _items.Count;
     
-    public BrowserSelection Selection { get; private set; } = new BrowserSelection(0, 0);
+    public bool Entered { get; set; }
+    
+    public BrowserSelection Selection { get; private set; } = new(0, 0);
+    
+    private List<BrowserItem> _items = new();
 
-    private readonly List<BrowserItem> _items = new List<BrowserItem>();
-    private string _currentFilter = string.Empty;
-
-    public CancellationToken CancellationToken { get; init; }
-    public ManualResetEvent RefreshEvent { get; init; }
-
-    public BrowseState(IEnumerable<(string, object)> items, BrowserItem? parentItem, string filter, CancellationToken cancellationToken, ManualResetEvent refreshEvent)
+    public BrowseState(IEnumerable<(string, object)> items, BrowserItem? parentItem, string filter)
     {
         Filter = filter;
-        CancellationToken = cancellationToken;
-        RefreshEvent = refreshEvent;
-        
-        var itemSorted = new SortedDictionary<string, object>(items.ToDictionary(a => a.Item1, a => a.Item2));
-
-        foreach (var item in itemSorted)
-        {
-            _items.Add(new BrowserItem(BrowserItemType.Single, item.Key, new object[] { item.Value }, parentItem));
-        }
+        ResetItems(items, parentItem);
     }
 
     public BrowserItem this[int index] => _items[index];
+    public BrowserItem Selected => this[Selection.Selected];
 
     public void SetSelection(int firstDisplayed, int selected)
     {
         Selection = new BrowserSelection(firstDisplayed, selected);
+    }
+
+    public void ResetItems(IEnumerable<(string, object)> items, BrowserItem? parentItem)
+    {
+        var itemSorted = new SortedDictionary<string, object>(items.ToDictionary(a => a.Item1, a => a.Item2));
+
+        _items = new List<BrowserItem>();
+        foreach (var item in itemSorted)
+        {
+            _items.Add(new BrowserItem(BrowserItemType.Single, item.Key, new [] { item.Value }, parentItem));
+        }
     }
 }

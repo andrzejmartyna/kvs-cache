@@ -1,6 +1,5 @@
 # MUST 1.0
 
-- refresh - asynchronous on demand with progress indicator
 - refresh - asynchronous on startup while able to use cache with progress indicator
 - README.md
 

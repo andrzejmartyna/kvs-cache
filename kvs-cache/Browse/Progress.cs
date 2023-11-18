@@ -32,7 +32,7 @@ public static class Progress
 
             if (!writtenStarted)
             {
-                console.WriteAt(rectangle.Left, rectangle.Top, prefix);
+                console.WriteAt(rectangle.Left, rectangle.Top, prefix + new string(' ', rectangle.Width - prefix.Length));
                 writtenStarted = true;
             }
 

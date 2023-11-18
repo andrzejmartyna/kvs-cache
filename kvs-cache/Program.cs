@@ -1,17 +1,29 @@
 ﻿using kcs_cache;
 using kcs_cache.Models;
 
-var height = 14;
+var minHeight = 10;
+var optimalHeight = 14;
+var minWidth = 70;
+var optimalWidth = 80;
+if (Console.WindowHeight < minHeight || Console.WindowWidth < minHeight)
+{
+    Console.WriteLine($"Minimum terminal window for kvs-cache is {minHeight} height, {minWidth} width.");
+    Console.WriteLine("Please enlarge the terminal and rerun");
+    return;
+}
+
+var height = Math.Min(Console.WindowHeight, optimalHeight);
 for (var i = 0; i < height; ++i)
 {
     Console.WriteLine();
 }
 
-var controller = new Controller(new Rectangle(0, Console.CursorTop - height, 80, 14));
+var controller = new Controller(new Rectangle(0,  Math.Max(0, Console.CursorTop - height), Math.Min(Console.WindowWidth, optimalWidth), Math.Min(Console.WindowHeight, optimalHeight)));
 
-Console.CancelKeyPress += delegate
+Console.CancelKeyPress += delegate(object? _, ConsoleCancelEventArgs e)
 {
-    controller.OnExit();
+    controller.Break();
+    e.Cancel = true;
 };
 
 if (args.Length > 0)
@@ -22,7 +34,7 @@ if (args.Length > 0)
             controller.DrawTestBoard();
             break;
         case "--testkeys":
-            controller.TestKeys();;
+            controller.TestKeys();
             break;
     }
     return;
