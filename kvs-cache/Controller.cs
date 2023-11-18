@@ -20,7 +20,7 @@ public class Controller
         _console = new ConsoleUi(_geometry);
     }
     
-    public void Start()
+    public void Execute()
     {
         Console.CursorVisible = false;
         
@@ -29,6 +29,7 @@ public class Controller
         
         InitialDraw();
         BrowseSubscriptions();
+        OnExit();
         
         Console.CursorVisible = true;
     }
@@ -61,7 +62,7 @@ public class Controller
         var secret = (Secret)selected.Items[0];
         if (keyVault == null)
         {
-            _console.Message($"Internal error - no KeyVault found for the {secret.Name} secret");
+            _console.Message($"Internal error - no KeyVault found for the {secret.Name} secret", _console.RedMessage);
             return;
         }
 
@@ -99,12 +100,12 @@ public class Controller
             };
             
             Clipboard.SetText(JsonConvert.SerializeObject(jsonObject, Formatting.Indented));
-            _console.Message("The clipboard was filled with full information about the secret.");
+            _console.Message("The clipboard was filled with full information about the secret.", _console.GreenMessage);
         }
         else
         {
             Clipboard.SetText(secretValue);
-            _console.Message($"Value of the secret was copied to the clipboard.");
+            _console.Message($"Value of the secret was copied to the clipboard.", _console.GreenMessage);
         }
     }
 
@@ -126,5 +127,13 @@ public class Controller
         _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Alt-Enter / Esc");
         const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
         _console.WriteAt(tips.Right - commands.Length, tips.Top, commands);
+    }
+
+    public void OnExit()
+    {
+        _console.ClearRectangle(_geometry.Full);
+        Console.SetCursorPosition(0,  _geometry.Full.Top);
+        Console.WriteLine();
+        Console.WriteLine("Thank you for using kvs-cache!");
     }
 }

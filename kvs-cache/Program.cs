@@ -7,13 +7,11 @@ for (var i = 0; i < height; ++i)
     Console.WriteLine();
 }
 
-var top = Console.CursorTop - height;
-var operationRectangle = new Rectangle(0, top, 80, 14);
+var controller = new Controller(new Rectangle(0, Console.CursorTop - height, 80, 14));
 
-Console.CancelKeyPress += delegate {
-    Console.SetCursorPosition(0, operationRectangle.Bottom);
-    Console.WriteLine();
+Console.CancelKeyPress += delegate
+{
+    controller.OnExit();
 };
 
-new Controller(operationRectangle).Start();
-Console.WriteLine();
+controller.Execute();

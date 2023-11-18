@@ -169,7 +169,7 @@ public class Browser
         if (!string.IsNullOrWhiteSpace(_state.Filter))
         {
             _console.Write(" (filtered by: ");
-            _console.SetRedColors();
+            _console.SetColors(_console.Red);
             _console.Write(_state.Filter);
             _console.Write(" )");
         }
@@ -180,7 +180,7 @@ public class Browser
     private void ChangeSelectionTo(int newSelection)
     {
         _console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state[_state.Selection.Selected].DisplayName);
-        _console.SetHighlightedColors();
+        _console.SetColors(_console.Highlighted);
         _console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
         _console.SetDefaultColors();
         
@@ -189,18 +189,14 @@ public class Browser
 
     private void RedrawConsole()
     {
-        var emptyLine = new string(' ', _rectangle.Width);
-        for (var y = _rectangle.Top; y <= _rectangle.Bottom; ++y)
-        {
-            _console.WriteAt(_rectangle.Left, y, emptyLine);    
-        }
+        _console.ClearRectangle(_rectangle);
         
         var idx = 0;
         for (var y = _state.Selection.FirstDisplayed; y < _state.Count && idx < _rectangle.Height; ++y, ++idx)
         {
             if (y == _state.Selection.Selected)
             {
-                _console.SetHighlightedColors();
+                _console.SetColors(_console.Highlighted);
             }
             _console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[idx].DisplayName);
             if (y == _state.Selection.Selected)
