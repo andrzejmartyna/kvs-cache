@@ -9,10 +9,16 @@ namespace kcs_cache;
 
 public class Controller
 {
-    private KeyVaultSecretsCache _currentCache = new KeyVaultSecretsCache();
-    private ConsoleUi _console = new ConsoleUi(80, 20);
+    private KeyVaultSecretsCache _currentCache = new();
+    private readonly ConsoleUi _console;
+    private readonly BrowseGeometry _geometry;
+    private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
 
-    private KeyVaultSecretsRepository _keyVaultSecretsRepository = new KeyVaultSecretsRepository();
+    public Controller(Rectangle operationRectangle)
+    {
+        _geometry = new BrowseGeometry(operationRectangle);
+        _console = new ConsoleUi(_geometry);
+    }
     
     public void Start()
     {
@@ -34,16 +40,18 @@ public class Controller
 
     private void BrowseKeyVaults(BrowserItem selected, bool altPressed)
     {
-        _console.WriteAt(22, 1, selected.DisplayName);
+        var selection = _geometry.SelectionRectangle;
+        _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
         new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(a => (a.Name, (object)a))), selected, BrowseSecrets, "KeyVaults").Browse();
-        _console.WriteAt(22, 1, new string(' ', 57));
+        _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
     private void BrowseSecrets(BrowserItem selected, bool altPressed)
     {
-        _console.WriteAt(22, 2, selected.DisplayName);
+        var selection = _geometry.SelectionRectangle;
+        _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
         new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(a => a.Secrets.Select(a => (a.Name, (object)a)))), selected, ReadSecretValue, "Secrets").Browse();
-        _console.WriteAt(22, 2, new string(' ', 57));
+        _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
     private void ReadSecretValue(BrowserItem selected, bool altPressed)
@@ -102,20 +110,21 @@ public class Controller
 
     private void InitialDraw()
     {
-        _console.DrawDoubleRectangle(0, 0, _console.Width - 1, _console.Height - 1);
-        _console.DrawHorizontalLine(1, 4, _console.Width - 2);
-        _console.WriteAt(2, 1, $"Subscriptions: {_currentCache.SubscriptionCount}");
-        _console.WriteAt(2, 2, $"   Key vaults: {_currentCache.KeyVaultCount}");
-        _console.WriteAt(2, 3, $"      Secrets: {_currentCache.SecretCount}");
-        var refreshedAt = $"Refreshed at {_currentCache.ReadStartedAt}";
-        _console.WriteAt(_console.Width - refreshedAt.Length - 2, 3, refreshedAt);
-        _console.WriteAt(2, _console.Height - 1, "Filter / Up,Down,Home,End / Enter / Alt-Enter / Esc");
-        const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
-        _console.WriteAt(_console.Width - commands.Length - 2, _console.Height - 2, commands);
+        _console.DrawDoubleRectangle(_geometry.Full);
+        _console.DrawHorizontalLine(_geometry.DivideLine, true);
+        
+        var info = _geometry.SummaryRectangle;
+        _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_currentCache.SubscriptionCount}");
+        _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_currentCache.KeyVaultCount}");
+        _console.WriteAt(info.Left, info.Top + 2, $"      Secrets: {_currentCache.SecretCount}");
 
-        const string filter = "Filter: ";
-        var filterPosition = ( filter.Length + 2, 2 );
-        _console.WriteAt(2, 5, filter);
-        _console.SetCursorPosition(filterPosition.Item1, filterPosition.Item2);
+        var refreshed = _geometry.RefreshedRectangle;
+        var refreshedAt = $"Refreshed at {_currentCache.ReadStartedAt}";
+        _console.WriteAt(refreshed.Right - refreshedAt.Length, refreshed.Top, refreshedAt);
+
+        var tips = _geometry.TipsRectangle;
+        _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Alt-Enter / Esc");
+        const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
+        _console.WriteAt(tips.Right - commands.Length, tips.Top, commands);
     }
 }

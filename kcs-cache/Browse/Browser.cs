@@ -1,16 +1,16 @@
 using kcs_cache.ConsoleDraw;
+using kcs_cache.Models;
 
 namespace kcs_cache.Browse;
 
 public class Browser
 {
+    public BrowseGeometry Geometry => _console.Geometry;
+    
     private readonly ConsoleUi _console;
     private readonly Action<BrowserItem, bool> _onEnter;
 
-    private readonly int _left;
-    private readonly int _top;
-    private readonly int _width;
-    private readonly int _height;
+    private readonly Rectangle _rectangle;
 
     private readonly string _itemsName;
 
@@ -23,10 +23,7 @@ public class Browser
     {
         _console = console;
         _onEnter = onEnter;
-        _left = 1;
-        _top = 6;
-        _width = _console.Width - 2;
-        _height = _console.Height - 7;
+        _rectangle = _console.Geometry.BrowsingRectangle;
         _itemsName = itemsName;
 
         _parent = parentItem;
@@ -76,7 +73,7 @@ public class Browser
                 case ConsoleKey.DownArrow:
                     if (_state.Selection.Selected < _state.Count - 1)
                     {
-                        if (_state.Selection.Selected < _state.Selection.FirstDisplayed + _height - 1)
+                        if (_state.Selection.Selected < _state.Selection.FirstDisplayed + _rectangle.Height - 1)
                         {
                             ChangeSelectionTo(_state.Selection.Selected + 1);
                         }
@@ -104,7 +101,7 @@ public class Browser
                 case ConsoleKey.End:
                     if (_state.Selection.Selected < _state.Count - 1)
                     {
-                        var targetFirstDisplayed = int.Max(0, _state.Count - _height);
+                        var targetFirstDisplayed = int.Max(0, _state.Count - _rectangle.Height);
                         if (_state.Selection.FirstDisplayed >= targetFirstDisplayed)
                         {
                             ChangeSelectionTo(_state.Count - 1);
@@ -157,15 +154,16 @@ public class Browser
 
         _filteredStates[_state.Filter] = _state;
         _state = newState;
-        
-        _console.WriteAt(_left, _top - 1, new string(' ', _width));
+
+        var header = Geometry.SelectionHeaderLine;
+        _console.DrawHorizontalLine(header, false);
         if (_state.Count <= 0)
         {
-            _console.WriteAt(_left, _top - 1, $"No {_itemsName} found");
+            _console.WriteAt(header.Left, header.Top, $"No {_itemsName} found");
         }
         else
         {
-            _console.WriteAt(_left, _top - 1, $"{_itemsName} found:");
+            _console.WriteAt(header.Left, header.Top, $"{_itemsName} found:");
         }
 
         if (!string.IsNullOrWhiteSpace(_state.Filter))
@@ -181,9 +179,9 @@ public class Browser
 
     private void ChangeSelectionTo(int newSelection)
     {
-        _console.WriteAt(_left, _top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state[_state.Selection.Selected].DisplayName);
+        _console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state[_state.Selection.Selected].DisplayName);
         _console.SetHighlightedColors();
-        _console.WriteAt(_left, _top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
+        _console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
         _console.SetDefaultColors();
         
         _state.SetSelection(_state.Selection.FirstDisplayed, newSelection);
@@ -191,20 +189,20 @@ public class Browser
 
     private void RedrawConsole()
     {
-        var emptyLine = new string(' ', _width);
-        for (var y = _top; y < _top + _height; ++y)
+        var emptyLine = new string(' ', _rectangle.Width);
+        for (var y = _rectangle.Top; y <= _rectangle.Bottom; ++y)
         {
-            _console.WriteAt(_left, y, emptyLine);    
+            _console.WriteAt(_rectangle.Left, y, emptyLine);    
         }
         
         var idx = 0;
-        for (var y = _state.Selection.FirstDisplayed; y < _state.Count && idx < _height; ++y, ++idx)
+        for (var y = _state.Selection.FirstDisplayed; y < _state.Count && idx < _rectangle.Height; ++y, ++idx)
         {
             if (y == _state.Selection.Selected)
             {
                 _console.SetHighlightedColors();
             }
-            _console.WriteAt(_left, _top + idx, _state[idx].DisplayName);
+            _console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[idx].DisplayName);
             if (y == _state.Selection.Selected)
             {
                 _console.SetDefaultColors();

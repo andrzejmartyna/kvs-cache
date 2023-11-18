@@ -1,25 +1,19 @@
+using kcs_cache.Browse;
+using kcs_cache.Models;
+
 namespace kcs_cache.ConsoleDraw;
 
 public class ConsoleUi
 {
-    public int Width => _uiBuffer.Width;
-    public int Height => _uiBuffer.Height;
-    
-    
+    public BrowseGeometry Geometry => _uiBuffer.Geometry;
+
     private ConsoleUiBuffer _uiBuffer;
     private Stack<ConsoleUiBuffer> _snapshots = new Stack<ConsoleUiBuffer>();
     private (int, int) _cursor = new(0, 0);
     
-    public ConsoleUi(int width, int height)
+    public ConsoleUi(BrowseGeometry _geometry)
     {
-        for (var i = 0; i < height; ++i)
-        {
-            Console.WriteLine();
-        }
-
-        var cursor = Console.GetCursorPosition();
-        var top = height - cursor.Top;
-        _uiBuffer = new ConsoleUiBuffer(0, width, height, new ConsoleColors(Console.ForegroundColor, Console.BackgroundColor));
+        _uiBuffer = new ConsoleUiBuffer(_geometry, new ConsoleColors(Console.ForegroundColor, Console.BackgroundColor));
     }
 
     public void DrawDoubleRectangle(int left, int top, int right, int bottom)
@@ -28,10 +22,14 @@ public class ConsoleUi
         _uiBuffer.Flush();
     }
 
-    public void DrawHorizontalLine(int startX, int startY, int width)
+    public void DrawDoubleRectangle(Rectangle rectangle)
     {
-        _uiBuffer.DrawHorizontalLine(startX, startY, width);
-        _uiBuffer.Flush();
+        _uiBuffer.DrawDoubleRectangle(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+    }
+
+    public void DrawHorizontalLine(HorizontalLine line, bool verticalTerminators)
+    {
+        _uiBuffer.DrawHorizontalLine(line.Left, line.Top, line.Width, verticalTerminators);
     }
 
     public void WriteAt(int x, int y, string text)
@@ -40,6 +38,11 @@ public class ConsoleUi
         _cursor.Item1 = x + text.Length;
         _cursor.Item2 = y;
         _uiBuffer.Flush();
+    }
+
+    public void WriteAt(Point at, string text)
+    {
+        WriteAt(at.X, at.Y, text);
     }
 
     public void Write(string text)
@@ -90,7 +93,8 @@ public class ConsoleUi
         PushSnapshot();
         
         SetMessageColors();
-        WriteAt((_uiBuffer.Width - message.Length) / 2, _uiBuffer.Height / 2, message);
+        //TODO: implement method "center"
+        WriteAt(Geometry.Full.Left + (Geometry.Full.Width - message.Length) / 2, Geometry.Full.Top + Geometry.Full.Height / 2, message);
         SetDefaultColors();
         Console.ReadKey(true);
         

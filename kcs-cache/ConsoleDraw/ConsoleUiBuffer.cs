@@ -1,34 +1,26 @@
+using kcs_cache.Browse;
+using kcs_cache.Models;
+
 namespace kcs_cache.ConsoleDraw;
 
 public record ConsoleColors(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor);
-
-public record Coordinates(int X, int Y)
-{
-    public int X { get; set; } = X;
-    public int Y { get; set; } = Y;
-}
 
 public record Section(int X, int Y, int Color, string Text);
 
 public class ConsoleUiBuffer
 {
-    public int Top { get; init; }
-    public int Width { get; init; }
-    public int Height { get; init; }
+    public BrowseGeometry Geometry { get; init; }
 
     private List<string> _textBuffer;
     private int[,] _colorsBuffer;
     private List<ConsoleColors> _colors = new List<ConsoleColors>();
-    private Coordinates _cursor;
+    private Point _cursor;
     private int _currentColor;
-    private Coordinates _invalidatedTopLeft = new Coordinates(-1, -1);
-    private Coordinates _invalidatedBottomRight = new Coordinates(-1, -1);
+    private Rectangle _invalidatedArea;
 
     public ConsoleUiBuffer(ConsoleUiBuffer originalBuffer)
     {
-        Top = originalBuffer.Top;
-        Width = originalBuffer.Width;
-        Height = originalBuffer.Height;
+        Geometry = new BrowseGeometry(originalBuffer.Geometry);
         _textBuffer = new List<string>(originalBuffer._textBuffer);
         _colorsBuffer = (int[,]) originalBuffer._colorsBuffer.Clone();
         _colors = new List<ConsoleColors>(originalBuffer._colors);
@@ -38,38 +30,35 @@ public class ConsoleUiBuffer
         InvalidateAll();
     }
 
-    public ConsoleUiBuffer(int top, int width, int height, ConsoleColors defaultColors)
+    public ConsoleUiBuffer(BrowseGeometry _geometry, ConsoleColors defaultColors)
     {
-        Top = top;
-        Width = width;
-        Height = height;
+        Geometry = _geometry;
 
         _textBuffer = new List<string>();
-        var emptyLine = new string(' ', Width);
-        for (var y = 0; y < Height; ++y)
+        var emptyLine = new string(' ', Geometry.Full.Width);
+        for (var y = 0; y < Geometry.Full.Height; ++y)
         {
             _textBuffer.Add(emptyLine);
         }
 
-        _colorsBuffer = new int[Width, Height];
+        _colorsBuffer = new int[Geometry.Full.Width, Geometry.Full.Height];
         _colors.Add(defaultColors);
         _currentColor = 0;
-        _cursor = new Coordinates(0, 0);
+        _cursor = new Point(0, 0);
     }
 
     private void InvalidateAll()
     {
-        _invalidatedTopLeft = new Coordinates(0, 0);
-        _invalidatedBottomRight = new Coordinates(Width - 1, Height - 1);
+        _invalidatedArea = new Rectangle(0, 0, Geometry.Full.Width, Geometry.Full.Height);
     }
 
     private void ValidateAll()
     {
-        _invalidatedTopLeft = new Coordinates(-1, -1);
-        _invalidatedBottomRight = new Coordinates(-1, -1);
+        _invalidatedArea = new Rectangle(0, 0, 0, 0);
     }
 
-    public void SetCursorPosition(int left, int top) => _cursor = new Coordinates(left, top);
+    //TODO: better handle translation from absolute coordinates to relative coordinates
+    public void SetCursorPosition(int left, int top) => _cursor = new Point(left - Geometry.Full.Left, top - Geometry.Full.Top);
 
     public void Write(char chr)
     {
@@ -85,34 +74,34 @@ public class ConsoleUiBuffer
         }
 
         Invalidate(_cursor, text.Length);
-        
-        _cursor.X += text.Length;
+
+        _cursor.MoveRight(text.Length);
     }
 
-    private void Invalidate(Coordinates cursor, int width)
+    private void Invalidate(Point cursor, int width)
     {
-        if (_invalidatedTopLeft.X < 0)
+        if (_invalidatedArea.Height <= 0)
         {
-            _invalidatedTopLeft = new Coordinates(cursor.X, cursor.Y);
-            _invalidatedBottomRight = new Coordinates(cursor.X + width - 1, cursor.Y);
+            _invalidatedArea = new Rectangle(cursor.X, cursor.Y, width, 1);
             return;
         }
-        if (_invalidatedTopLeft.X > cursor.X)
+        
+        if (_invalidatedArea.Left > cursor.X)
         {
-            _invalidatedTopLeft.X = cursor.X;
+            _invalidatedArea.SetLeft(cursor.X);
         }
-        if (_invalidatedBottomRight.X < cursor.X + width - 1)
+        if (_invalidatedArea.Right < cursor.X + width - 1)
         {
-            _invalidatedBottomRight.X = cursor.X + width - 1;
+            _invalidatedArea.SetRight(cursor.X + width - 1);
         }
 
-        if (_invalidatedTopLeft.Y > cursor.Y)
+        if (_invalidatedArea.Top > cursor.Y)
         {
-            _invalidatedTopLeft.Y = cursor.Y;
+            _invalidatedArea.SetTop(cursor.Y);
         }
-        else if (_invalidatedBottomRight.Y < cursor.Y)
+        else if (_invalidatedArea.Bottom < cursor.Y)
         {
-            _invalidatedBottomRight.Y = cursor.Y;
+            _invalidatedArea.SetBottom(cursor.Y);
         }
     }
 
@@ -134,6 +123,7 @@ public class ConsoleUiBuffer
         }
     }
     
+    //INFO: [Box drawing ASCII characters](https://en.wikipedia.org/wiki/Box-drawing_character)
     public void DrawDoubleRectangle(int left, int top, int right, int bottom)
     {
         SetCursorPosition(left, top);
@@ -153,10 +143,18 @@ public class ConsoleUiBuffer
         Write('\u255D');
     }
 
-    public void DrawHorizontalLine(int startX, int startY, int width)
+    public void DrawHorizontalLine(int startX, int startY, int width, bool verticalTerminators)
     {
         SetCursorPosition(startX, startY);
-        Write(new string('\u2500', width));
+        Write(verticalTerminators ? "\u255F" : "\u2500");
+        if (width > 2)
+        {
+            Write(new string('\u2500', width - 2));
+        }
+        if (width > 1)
+        {
+            Write(verticalTerminators ? "\u2562" : "\u2500");
+        }
     }
 
     public void WriteAt(int x, int y, string text)
@@ -173,15 +171,16 @@ public class ConsoleUiBuffer
 
     public void Flush()
     {
-        if (_invalidatedTopLeft.X < 0)
+        if (_invalidatedArea.Height <= 0)
         {
             return;
         }
 
         var paintingColor = -1;
-        foreach (var section in EnumerateSections(_invalidatedTopLeft, _invalidatedBottomRight))
+        foreach (var section in EnumerateSections(_invalidatedArea))
         {
-            Console.SetCursorPosition(section.X, Top + section.Y);
+            //TODO: better handle translation from relative coordinates to absolute coordinates
+            Console.SetCursorPosition(Geometry.Full.Left + section.X, Geometry.Full.Top + section.Y);
             if (section.Color != paintingColor)
             {
                 paintingColor = section.Color;
@@ -196,13 +195,13 @@ public class ConsoleUiBuffer
         ValidateAll();
     }
     
-    private IEnumerable<Section> EnumerateSections(Coordinates topLeft, Coordinates bottomRight)
+    private IEnumerable<Section> EnumerateSections(Rectangle rectangle)
     {
-        for (var y = topLeft.Y; y <= bottomRight.Y; ++y)
+        for (var y = rectangle.Top; y <= rectangle.Bottom; ++y)
         {
-            var startX = topLeft.X;
+            var startX = rectangle.Left;
             var currentColor = _colorsBuffer[startX, y];
-            for (var x = topLeft.X + 1; x <= bottomRight.X; ++x)
+            for (var x = rectangle.Left + 1; x <= rectangle.Right; ++x)
             {
                 if (_colorsBuffer[x, y] != currentColor)
                 {
@@ -211,7 +210,7 @@ public class ConsoleUiBuffer
                     currentColor = _colorsBuffer[x, y];
                 }
             }
-            yield return new Section(startX, y, currentColor, _textBuffer[y].Substring(startX, bottomRight.X - startX + 1));
+            yield return new Section(startX, y, currentColor, _textBuffer[y].Substring(startX, rectangle.Right - startX + 1));
         }
     }
 }

@@ -47,25 +47,4 @@ public class KeyVaultSecretsCache
     {
         File.WriteAllText(filePath, JsonSerializer.Serialize(this));
     }
-
-    public IEnumerable<SecretFound> SearchForWords(string[] words)
-    {
-        foreach (var word in words)
-        {
-            foreach (var sub in Subscriptions)
-            {
-                foreach (var kv in sub.KeyVaults)
-                {
-                    foreach (var s in kv.Secrets)
-                    {
-                        if (kv.Name.Contains(word, StringComparison.InvariantCultureIgnoreCase)
-                            || s.Name.Contains(word, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            yield return new SecretFound(s.Name, kv.Name, kv.Url, sub.Name);
-                        }
-                    }
-                }
-            }
-        }
-    }
 }

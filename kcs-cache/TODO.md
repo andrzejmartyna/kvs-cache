@@ -1,12 +1,12 @@
 # MUST
 
 - experiment toward faster Azure Credentials
-- UX - "objects found" one line up, height halved, "filtered by any of"
-- UX - correct joints between rectangle and horizontal lines
+- UX - "filtered by any of"
 - Dockerfile
 - ReleaseNotes.md
 - README.md
-- Code cleanup - geometry + test board
+- Code cleanup
+- test board
 - refresh - asynchronous on start + progress indicator
 - refresh - asynchronous on demand + progress indicator
 - asynchronous progress indicator while acquiring credentials
@@ -18,13 +18,15 @@
 - UX - F1/Help
 - corner cases handled
 - URLs to Azure Portal resources in output Json
+- show age of cache
 
 # COULD
 
+- parametrize app settings
 - documentation in Sphinx
 - unit tests
 - model tests
 
 # WILL NOT
 
-- N/A
+- search through all objects (probably very good, useful instant filter is more than enough for kvs-cache)
