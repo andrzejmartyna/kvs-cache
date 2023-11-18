@@ -9,7 +9,7 @@ namespace kcs_cache.KeyVaults;
 
 public class KeyVaultSecretsRepository
 {
-    private TokenCredential _credentials = new ChainedTokenCredential(new AzureCliCredential(), new DefaultAzureCredential(false));
+    private TokenCredential _credentials = new ChainedTokenCredential(new AzureCliCredential(), new DefaultAzureCredential(true));
 
     public IEnumerable<Subscription> GetKeyVaultSecretEntries()
     {

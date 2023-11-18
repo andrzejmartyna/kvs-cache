@@ -24,7 +24,7 @@ public class Controller
     {
         Console.CursorVisible = false;
         
-        var cacheFile = "kcs-cache.json";
+        var cacheFile = "kvs-cache.json";
         _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
         
         InitialDraw();
