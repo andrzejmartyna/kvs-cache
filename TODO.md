@@ -13,6 +13,7 @@
 - clarify Feedback / contribution / communication
   - is my e-mail accessible?
   - is this valid: [this way](https://stackoverflow.com/a/49277449/669692)?
+- handle Azure exception gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))
 
 # SHOULD
 
