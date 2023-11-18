@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using kcs_cache.ConsoleDraw;
 using kcs_cache.Models;
 
@@ -133,23 +134,36 @@ public class Browser
         _console.PopSnapshot();
     }
 
+    private static string CleanFilter(string filter) => Regex.Replace(filter, @"\s+", " ");
+    
+    private static string[] SplitFilter(string filter) => CleanFilter(filter).Split(' ', StringSplitOptions.RemoveEmptyEntries); 
+    
     private void ApplyFilter(string newFilter)
     {
+        newFilter = CleanFilter(newFilter);
         if (!_filteredStates.TryGetValue(newFilter, out var newState))
         {
-            var filtered = new List<(string, object)>();
-            foreach (var item in _allItems)
+            if (string.IsNullOrWhiteSpace(newFilter))
             {
-                foreach (var word in newFilter.Trim().Split(' '))
+                newState = new BrowseState(_allItems, _parent, newFilter);
+            }
+            else
+            {
+                var filtered = new List<(string, object)>();
+                var words = SplitFilter(newFilter);
+                foreach (var item in _allItems)
                 {
-                    if (item.Item1.Contains(word, StringComparison.InvariantCultureIgnoreCase))
+                    foreach (var word in words)
                     {
-                        filtered.Add(item);
-                        break;
+                        if (item.Item1.Contains(word, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            filtered.Add(item);
+                            break;
+                        }
                     }
                 }
+                newState = new BrowseState(filtered, _parent, newFilter);
             }
-            newState = new BrowseState(filtered, _parent, newFilter);
         }
 
         _filteredStates[_state.Filter] = _state;
@@ -168,10 +182,16 @@ public class Browser
 
         if (!string.IsNullOrWhiteSpace(_state.Filter))
         {
-            _console.Write(" (filtered by: ");
+            _console.Write(" (filtered by");
+            if (SplitFilter(_state.Filter).Length > 1)
+            {
+                _console.Write(" any of");
+            }
+            _console.Write(": ");
             _console.SetColors(_console.Red);
-            _console.Write(_state.Filter);
-            _console.Write(" )");
+            _console.Write(CleanFilter(_state.Filter));
+            _console.SetDefaultColors();
+            _console.Write(")");
         }
 
         RedrawConsole();
