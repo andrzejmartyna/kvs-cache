@@ -14,6 +14,8 @@ public class Controller
     private readonly BrowseGeometry _geometry;
     private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
     private readonly ManualResetEvent _breakPressed = new(false);
+    private int _testSleepInfo;
+    private int _testSleepSecret;
 
     public Controller(Rectangle operationRectangle)
     {
@@ -25,7 +27,10 @@ public class Controller
     {
         var cacheFile = "kvs-cache.json";
         _currentCache = KeyVaultSecretsCache.ObtainValidCache(cacheFile, new TimeSpan(1, 0, 0, 0), _keyVaultSecretsRepository);
-        Thread.Sleep(2000);
+        if (_testSleepInfo > 0)
+        {
+            Thread.Sleep(_testSleepInfo);
+        }
     }
 
     public void Break()
@@ -33,8 +38,11 @@ public class Controller
         _breakPressed.Set();
     }
     
-    public void Execute()
+    public void Execute(int testSleepInfo, int testSleepSecret)
     {
+        _testSleepInfo = testSleepInfo;
+        _testSleepSecret = testSleepSecret;
+        
         Console.CursorVisible = false;
         
         InitialDraw();
@@ -145,6 +153,10 @@ public class Controller
         Progress.Run(() =>
         {
             secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
+            if (_testSleepSecret > 0)
+            {
+                Thread.Sleep(_testSleepSecret);
+            }
         }, _console, _geometry.ReadingProgressRectangle, "Reading");
         
         if (info)
