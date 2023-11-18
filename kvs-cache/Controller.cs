@@ -135,7 +135,7 @@ public class Controller
         
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        context[1].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(b => (b.Name, (object)b))), selected);
+        context[1].Browse(((Subscription)selected.Items[0]).KeyVaults.Select(a => (a.Name, (object)a)), selected);
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
@@ -145,7 +145,7 @@ public class Controller
 
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        context[2].Browse(_currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(b => b.Secrets.Select(c => (c.Name, (object)c)))), selected);
+        context[2].Browse(((KeyVault)selected.Items[0]).Secrets.Select(a => (a.Name, (object)a)), selected);
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 

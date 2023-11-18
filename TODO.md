@@ -1,5 +1,7 @@
 # MUST 1.1
 
+- handle PageUp/PageDown
+- lazy loading, cache and refresh fragments independently
 - operation/context menu on secret/KV/subscription
   - Set secret value
   - Get/set secret value using base64
@@ -21,6 +23,7 @@
 - work from inside Docker including seamless Azure credentials handling
 - show age of cache
 - fix bug: Ctrl-C on the message does not work immediately but after exiting the message using another key
+- replace places with old style cast of objects to Subscription/KeyVault/Secret
 
 # COULD
 

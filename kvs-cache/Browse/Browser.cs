@@ -192,14 +192,7 @@ public class Browser
 
     private static bool ItemShouldBeVisible(string itemName, IEnumerable<string> words)
     {
-        foreach (var word in words)
-        {
-            if (itemName.Contains(word, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
-            }
-        }
-        return false;
+        return words.All(word => itemName.Contains(word, StringComparison.InvariantCultureIgnoreCase));
     }
     
     private void ApplyFilter(string? newFilter)
@@ -239,7 +232,7 @@ public class Browser
             _context.Console.Write(" (filtered by");
             if (SplitFilter(_state.Filter).Length > 1)
             {
-                _context.Console.Write(" any of");
+                _context.Console.Write(" all of");
             }
             _context.Console.Write(": ");
             _context.Console.SetColors(_context.Console.Red);

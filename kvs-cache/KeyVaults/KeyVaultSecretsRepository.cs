@@ -128,6 +128,25 @@ public class KeyVaultSecretsRepository
     public string GetSecretValue(string keyVaultUrl, string secretName)
     {
         var secretClient = new SecretClient(new Uri(keyVaultUrl), _credentials);
-        return secretClient.GetSecret(secretName).Value.Value;
+        try
+        {
+            return secretClient.GetSecret(secretName).Value.Value;
+        }
+        catch (RequestFailedException)
+        {
+            //TODO: what a shame to eat exception
+            return "Error reading secret";
+        }
+        catch (AggregateException aggregateException)
+        {
+            foreach (var ex in aggregateException.InnerExceptions)
+            {
+                if (ex is not RequestFailedException)
+                {
+                    throw;
+                }
+            }
+            return "Error reading secret";
+        }
     }
 }
