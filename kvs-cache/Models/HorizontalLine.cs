@@ -12,4 +12,6 @@ public struct HorizontalLine
         Top = top;
         Width = width;
     }
+
+    public Rectangle Rectangle => new Rectangle(Left, Top, Width, 1);
 }

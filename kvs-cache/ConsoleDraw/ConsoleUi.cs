@@ -98,9 +98,9 @@ public class ConsoleUi
         PopSnapshot();
     }
 
-    public void ClearRectangle(Rectangle rectangle)
+    public void FillRectangle(Rectangle rectangle, char ch)
     {
-        var emptyLine = new string(' ', rectangle.Width);
+        var emptyLine = new string(ch, rectangle.Width);
         for (var y = rectangle.Top; y <= rectangle.Bottom; ++y)
         {
             WriteAt(rectangle.Left, y, emptyLine);    

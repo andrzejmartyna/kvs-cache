@@ -1,12 +1,10 @@
 # MUST
 
 - experiment toward faster Azure Credentials
-- UX - "filtered by any of"
 - Dockerfile
 - ReleaseNotes.md
 - README.md
 - Code cleanup
-- test board
 - refresh - asynchronous on start + progress indicator
 - refresh - asynchronous on demand + progress indicator
 - asynchronous progress indicator while acquiring credentials

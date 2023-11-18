@@ -19,7 +19,7 @@ public class Controller
         _geometry = new BrowseGeometry(operationRectangle);
         _console = new ConsoleUi(_geometry);
     }
-    
+
     public void Execute()
     {
         Console.CursorVisible = false;
@@ -109,6 +109,20 @@ public class Controller
         }
     }
 
+    public void DrawTestBoard()
+    {
+        _console.DrawDoubleRectangle(_geometry.Full);
+        _console.DrawHorizontalLine(_geometry.DivideLine, true);
+        _console.FillRectangle(_geometry.SummaryRectangle, 's');
+        _console.FillRectangle(_geometry.SelectionRectangle, 'x');
+        _console.FillRectangle(_geometry.RefreshedRectangle, 'r');
+        _console.FillRectangle(_geometry.BrowsingRectangle, '.');
+        _console.FillRectangle(_geometry.TipsRectangle, 't');
+        _console.FillRectangle(_geometry.SelectionHeaderLine.Rectangle, 'u');
+        Console.SetCursorPosition(0,  _geometry.Full.Bottom);
+        Console.WriteLine();
+    }
+
     private void InitialDraw()
     {
         _console.DrawDoubleRectangle(_geometry.Full);
@@ -131,9 +145,8 @@ public class Controller
 
     public void OnExit()
     {
-        _console.ClearRectangle(_geometry.Full);
-        Console.SetCursorPosition(0,  _geometry.Full.Top);
-        Console.WriteLine();
+        _console.FillRectangle(_geometry.Full, ' ');
+        Console.SetCursorPosition(0,  _geometry.Full.Top + 1);
         Console.WriteLine("Thank you for using kvs-cache!");
     }
 }

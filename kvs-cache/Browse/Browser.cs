@@ -209,7 +209,7 @@ public class Browser
 
     private void RedrawConsole()
     {
-        _console.ClearRectangle(_rectangle);
+        _console.FillRectangle(_rectangle, ' ');
         
         var idx = 0;
         for (var y = _state.Selection.FirstDisplayed; y < _state.Count && idx < _rectangle.Height; ++y, ++idx)
