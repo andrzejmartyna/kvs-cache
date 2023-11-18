@@ -24,30 +24,18 @@ public class ConsoleUiBuffer
     private Coordinates _invalidatedTopLeft = new Coordinates(-1, -1);
     private Coordinates _invalidatedBottomRight = new Coordinates(-1, -1);
 
-    public ConsoleUiBuffer(ConsoleUiBuffer oryginalBuffer)
+    public ConsoleUiBuffer(ConsoleUiBuffer originalBuffer)
     {
-        Top = oryginalBuffer.Top;
-        Width = oryginalBuffer.Width;
-        Height = oryginalBuffer.Height;
-        _textBuffer = new List<string>(oryginalBuffer._textBuffer);
-        _colorsBuffer = (int[,]) oryginalBuffer._colorsBuffer.Clone();
-        _colors = new List<ConsoleColors>(oryginalBuffer._colors);
-        _cursor = oryginalBuffer._cursor;
-        _currentColor = oryginalBuffer._currentColor;
+        Top = originalBuffer.Top;
+        Width = originalBuffer.Width;
+        Height = originalBuffer.Height;
+        _textBuffer = new List<string>(originalBuffer._textBuffer);
+        _colorsBuffer = (int[,]) originalBuffer._colorsBuffer.Clone();
+        _colors = new List<ConsoleColors>(originalBuffer._colors);
+        _cursor = originalBuffer._cursor;
+        _currentColor = originalBuffer._currentColor;
         
         InvalidateAll();
-    }
-
-    private void InvalidateAll()
-    {
-        _invalidatedTopLeft = new Coordinates(0, 0);
-        _invalidatedBottomRight = new Coordinates(Width - 1, Height - 1);
-    }
-
-    private void ValidateAll()
-    {
-        _invalidatedTopLeft = new Coordinates(-1, -1);
-        _invalidatedBottomRight = new Coordinates(-1, -1);
     }
 
     public ConsoleUiBuffer(int top, int width, int height, ConsoleColors defaultColors)
@@ -67,6 +55,18 @@ public class ConsoleUiBuffer
         _colors.Add(defaultColors);
         _currentColor = 0;
         _cursor = new Coordinates(0, 0);
+    }
+
+    private void InvalidateAll()
+    {
+        _invalidatedTopLeft = new Coordinates(0, 0);
+        _invalidatedBottomRight = new Coordinates(Width - 1, Height - 1);
+    }
+
+    private void ValidateAll()
+    {
+        _invalidatedTopLeft = new Coordinates(-1, -1);
+        _invalidatedBottomRight = new Coordinates(-1, -1);
     }
 
     public void SetCursorPosition(int left, int top) => _cursor = new Coordinates(left, top);
@@ -118,6 +118,8 @@ public class ConsoleUiBuffer
 
     public void SetDefaultColor() => _currentColor = 0;
 
+    public ConsoleColors GetDefaultColors() => _colors[0];
+    
     public void SetColor(ConsoleColors colors)
     {
         var index = _colors.FindIndex(a => a == colors);

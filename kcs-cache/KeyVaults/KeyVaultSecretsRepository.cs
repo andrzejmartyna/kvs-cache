@@ -1,3 +1,4 @@
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
@@ -8,7 +9,7 @@ namespace kcs_cache.KeyVaults;
 
 public class KeyVaultSecretsRepository
 {
-    private DefaultAzureCredential _credentials = new();
+    private TokenCredential _credentials = new ChainedTokenCredential(new AzureCliCredential(), new DefaultAzureCredential(true));
 
     public IEnumerable<Subscription> GetKeyVaultSecretEntries()
     {

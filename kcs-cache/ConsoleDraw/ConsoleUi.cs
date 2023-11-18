@@ -8,6 +8,7 @@ public class ConsoleUi
     
     private ConsoleUiBuffer _uiBuffer;
     private Stack<ConsoleUiBuffer> _snapshots = new Stack<ConsoleUiBuffer>();
+    private (int, int) _cursor = new(0, 0);
     
     public ConsoleUi(int width, int height)
     {
@@ -36,6 +37,15 @@ public class ConsoleUi
     public void WriteAt(int x, int y, string text)
     {
         _uiBuffer.WriteAt(x, y, text);
+        _cursor.Item1 = x + text.Length;
+        _cursor.Item2 = y;
+        _uiBuffer.Flush();
+    }
+
+    public void Write(string text)
+    {
+        _uiBuffer.WriteAt(_cursor.Item1, _cursor.Item2, text);
+        _cursor.Item1 += text.Length;
         _uiBuffer.Flush();
     }
 
@@ -54,6 +64,11 @@ public class ConsoleUi
         _uiBuffer.SetColor(new ConsoleColors(ConsoleColor.White, ConsoleColor.Red));
     }
 
+    public void SetRedColors()
+    {
+        _uiBuffer.SetColor(new ConsoleColors(ConsoleColor.Red, _uiBuffer.GetDefaultColors().BackgroundColor));
+    }
+    
     public void SetDefaultColors()
     {
         _uiBuffer.SetDefaultColor();

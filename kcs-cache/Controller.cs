@@ -34,12 +34,16 @@ public class Controller
 
     private void BrowseKeyVaults(BrowserItem selected, bool altPressed)
     {
+        _console.WriteAt(22, 1, selected.DisplayName);
         new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.Select(a => (a.Name, (object)a))), selected, BrowseSecrets, "KeyVaults").Browse();
+        _console.WriteAt(22, 1, new string(' ', 57));
     }
 
     private void BrowseSecrets(BrowserItem selected, bool altPressed)
     {
+        _console.WriteAt(22, 2, selected.DisplayName);
         new Browser(_console, _currentCache.Subscriptions.SelectMany(a => a.KeyVaults.SelectMany(a => a.Secrets.Select(a => (a.Name, (object)a)))), selected, ReadSecretValue, "Secrets").Browse();
+        _console.WriteAt(22, 2, new string(' ', 57));
     }
 
     private void ReadSecretValue(BrowserItem selected, bool altPressed)
