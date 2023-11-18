@@ -1,9 +1,9 @@
+using System.Reflection;
 using kcs_cache.Browse;
 using kcs_cache.ConsoleDraw;
 using kcs_cache.KeyVaults;
 using kcs_cache.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace kcs_cache;
 
@@ -120,6 +120,7 @@ public class Controller
         _console.FillRectangle(_geometry.BrowsingRectangle, '.');
         _console.FillRectangle(_geometry.TipsRectangle, 't');
         _console.FillRectangle(_geometry.SelectionHeaderLine.Rectangle, 'u');
+        _console.FillRectangle(_geometry.VersionHeaderLine.Rectangle, 'v');
         Console.SetCursorPosition(0,  _geometry.Full.Bottom);
         Console.WriteLine();
     }
@@ -139,9 +140,14 @@ public class Controller
     {
         _console.DrawDoubleRectangle(_geometry.Full);
         _console.DrawHorizontalLine(_geometry.DivideLine, true);
+
         var tips = _geometry.TipsRectangle;
         const string commands = "Ctrl-C Exit";
         _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
+
+        var versionInfo = _geometry.VersionHeaderLine.Rectangle;
+        string version = $"kvs-cache v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "..."}";
+        _console.WriteAt(versionInfo.Right - version.Length + 1, versionInfo.Top, version);
     }
 
     private void DrawStatistics()
