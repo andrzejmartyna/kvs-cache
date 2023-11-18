@@ -33,7 +33,7 @@ public class Controller
         InitialDraw();
         
         var taskReadingSecrets = new Task(ReadingSecrets);
-        var taskProgress = new Task(() => Progress.Run(_geometry.RefreshedRectangle, "Collecting new information about secrets", taskReadingSecrets));
+        var taskProgress = new Task(() => Progress.Run(_console, _geometry.RefreshedRectangle, "Collecting new information about secrets", taskReadingSecrets));
         taskReadingSecrets.Start();
         taskProgress.Start();
         taskReadingSecrets.Wait();
@@ -93,7 +93,7 @@ public class Controller
             secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
         });
         
-        var taskProgress = new Task(() => Progress.Run(_geometry.ReadingProgressRectangle, "Reading", taskReading));
+        var taskProgress = new Task(() => Progress.Run(_console, _geometry.ReadingProgressRectangle, "Reading", taskReading));
         taskReading.Start();
         taskProgress.Start();
         taskReading.Wait();

@@ -17,6 +17,7 @@ public class ConsoleUiBuffer
     private Point _cursor;
     private int _currentColor;
     private Rectangle _invalidatedArea;
+    private object _lock = new();
 
     public ConsoleUiBuffer(ConsoleUiBuffer originalBuffer)
     {
@@ -176,23 +177,26 @@ public class ConsoleUiBuffer
             return;
         }
 
-        var paintingColor = -1;
-        foreach (var section in EnumerateSections(_invalidatedArea))
+        lock (_lock)
         {
-            //TODO: better handle translation from relative coordinates to absolute coordinates
-            Console.SetCursorPosition(Geometry.Full.Left + section.X, Geometry.Full.Top + section.Y);
-            if (section.Color != paintingColor)
+            var paintingColor = -1;
+            foreach (var section in EnumerateSections(_invalidatedArea))
             {
-                paintingColor = section.Color;
-                Console.BackgroundColor = _colors[paintingColor].BackgroundColor;
-                Console.ForegroundColor = _colors[paintingColor].ForegroundColor;
+                //TODO: better handle translation from relative coordinates to absolute coordinates
+                Console.SetCursorPosition(Geometry.Full.Left + section.X, Geometry.Full.Top + section.Y);
+                if (section.Color != paintingColor)
+                {
+                    paintingColor = section.Color;
+                    Console.BackgroundColor = _colors[paintingColor].BackgroundColor;
+                    Console.ForegroundColor = _colors[paintingColor].ForegroundColor;
+                }
+                Console.Write(section.Text);
             }
-            Console.Write(section.Text);
+
+            Console.BackgroundColor = _colors[_currentColor].BackgroundColor;
+            Console.ForegroundColor = _colors[_currentColor].ForegroundColor;
+            ValidateAll();
         }
-        SetDefaultColor();
-        Console.BackgroundColor = _colors[_currentColor].BackgroundColor;
-        Console.ForegroundColor = _colors[_currentColor].ForegroundColor;
-        ValidateAll();
     }
     
     private IEnumerable<Section> EnumerateSections(Rectangle rectangle)

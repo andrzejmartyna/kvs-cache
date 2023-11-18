@@ -1,10 +1,11 @@
+using kcs_cache.ConsoleDraw;
 using kcs_cache.Models;
 
 namespace kcs_cache.Browse;
 
 public static class Progress
 {
-    public static void Run(Rectangle rectangle, string prefix, Task workingTask)
+    public static void Run(ConsoleUi console, Rectangle rectangle, string prefix, Task workingTask)
     {
         var writtenStarted = false;
         var periodCounterDown = 5;
@@ -21,26 +22,22 @@ public static class Progress
 
             if (!writtenStarted)
             {
-                Console.SetCursorPosition(rectangle.Left, rectangle.Top);
-                Console.WriteLine(prefix);
+                console.WriteAt(rectangle.Left, rectangle.Top, prefix);
                 writtenStarted = true;
             }
 
             if (countDots > 7 || prefix.Length + countDots >= rectangle.Width)
             {
                 countDots = 0;
-                Console.SetCursorPosition(rectangle.Left + prefix.Length, rectangle.Top);
-                Console.WriteLine(new string(' ', rectangle.Width - prefix.Length));
+                console.WriteAt(rectangle.Left + prefix.Length, rectangle.Top, new string(' ', rectangle.Width - prefix.Length));
             }
 
-            Console.SetCursorPosition(rectangle.Left + prefix.Length + countDots, rectangle.Top);
-            Console.Write('.');
+            console.WriteAt(rectangle.Left + prefix.Length + countDots, rectangle.Top, ".");
 
             periodCounterDown = 5;
             ++countDots;
         }
 
-        Console.SetCursorPosition(rectangle.Left, rectangle.Top);
-        Console.WriteLine(new string(' ', rectangle.Width));
+        console.WriteAt(rectangle.Left, rectangle.Top, new string(' ', rectangle.Width));
     }
 }
