@@ -9,12 +9,11 @@ Note that:
 
 kvs-cache is written using .NET 7 and C# 11.  
 
-# License
+## Important known issue
 
-kvs-cache is distributed under MIT license.  
-More over, this is my first tool exposed through GitHub, so you should take "as-is" even more seriously as I may not follow many good practices of open source yet.  
-Apologize for any inconveniences.    
-You have been warned.  
+For version 1.0 I made a design mistake to cache all information upfront.  
+That's why if you have access to hundreds or thousands secrets you need to wait several minutes at first run or more...  (though if you eventually get it cached the speed of local browsing is brilliant :).  
+I plan to introduce lazy loading in next version but before that I disabled automatic refresh every 24h hours.   
 
 # Usage
 

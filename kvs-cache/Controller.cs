@@ -76,11 +76,12 @@ public class Controller
         while (true)
         {
             DrawStatistics();
-
-            if (!_currentCache.IsValidAge(_cacheMaxAge))
-            {
-                refreshEvent.Set();
-            }
+            
+            //TODO: enable after implementing lazy loading
+            // if (!_currentCache.IsValidAge(_cacheMaxAge))
+            // {
+            //     refreshEvent.Set();
+            // }
 
             var cts = new CancellationTokenSource();
             browsingContext.SetCancelationToken(cts.Token);
