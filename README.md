@@ -38,3 +38,4 @@ I plan to introduce lazy loading in next version but before that I disabled auto
 
 - [ReleaseNotes.md](ReleaseNotes.md)
 - [TODO.md](TODO.md)
+- [LICENSE](LICENSE)
