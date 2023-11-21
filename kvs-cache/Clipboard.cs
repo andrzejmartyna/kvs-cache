@@ -57,7 +57,7 @@ public static class Clipboard
     {
         if (OperatingSystem.IsWindows())
         {
-            $"echo -n {val} | clip".Bat();
+            $"echo|set /p dummyName={val}|clip".Bat();
         }
         else if (OperatingSystem.IsMacOS())
         {
