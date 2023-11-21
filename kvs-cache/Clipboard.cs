@@ -57,11 +57,11 @@ public static class Clipboard
     {
         if (OperatingSystem.IsWindows())
         {
-            $"echo {val} | clip".Bat();
+            $"echo -n {val} | clip".Bat();
         }
         else if (OperatingSystem.IsMacOS())
         {
-            $"echo \"{val}\" | pbcopy".Bash();
+            $"echo -n \"{val}\" | pbcopy".Bash();
         }
     }
 }
