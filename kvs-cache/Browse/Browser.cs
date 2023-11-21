@@ -92,6 +92,7 @@ public class Browser
                 continue;
             }
 
+            var pageSize = _rectangle.Height;
             switch (key.Key)
             {
                 case ConsoleKey.Enter:
@@ -161,6 +162,20 @@ public class Browser
                             _state.SetSelection(targetFirstDisplayed, _state.Count - 1);
                             RedrawConsole();
                         }
+                    }
+                    break;
+                case ConsoleKey.PageDown:
+                    if (_state.Selection.Selected + pageSize < _state.Count - 1)
+                    {
+                        _state.SetSelection(_state.Selection.FirstDisplayed + pageSize, _state.Selection.Selected + pageSize);
+                        RedrawConsole();
+                    }
+                    break;
+                case ConsoleKey.PageUp:
+                    if (_state.Selection.FirstDisplayed - pageSize >= 0)
+                    {
+                        _state.SetSelection(_state.Selection.FirstDisplayed - pageSize, _state.Selection.Selected - pageSize);
+                        RedrawConsole();
                     }
                     break;
                 case ConsoleKey.Backspace:
@@ -269,7 +284,7 @@ public class Browser
             {
                 _context.Console.SetColors(_context.Console.Highlighted);
             }
-            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[idx].DisplayName);
+            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[y].DisplayName);
             if (y == _state.Selection.Selected)
             {
                 _context.Console.SetDefaultColors();
