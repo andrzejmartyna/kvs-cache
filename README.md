@@ -9,11 +9,13 @@ Note that:
 
 kvs-cache is written using .NET 7 and C# 11.  
 
-## Important known issue in 1.0
+## Important known issues in 1.0
 
-For version 1.0 I made a design mistake to cache all information upfront.  
+1. For version 1.0 I made a design mistake to cache all information upfront.  
 That's why if you have access to hundreds or thousands secrets you need to wait several minutes at first run or more...  (though if you eventually get it cached the speed of local browsing is brilliant :).  
 I plan to introduce lazy loading in next version but before that I disabled automatic refresh not to irritate anyone.   
+
+2. I'm struggling on providing good, consistent clipboard support which may mean that some secret values copied to clipboard may be useless, unfortunatelly 
 
 # Usage
 
