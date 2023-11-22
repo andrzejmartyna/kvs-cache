@@ -1,4 +1,4 @@
-namespace kcs_cache.Models;
+namespace KvsCache.Models;
 
 public struct Point
 {

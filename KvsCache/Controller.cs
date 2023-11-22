@@ -1,11 +1,11 @@
 using System.Reflection;
-using kcs_cache.Browse;
-using kcs_cache.ConsoleDraw;
-using kcs_cache.KeyVaults;
-using kcs_cache.Models;
+using KvsCache.Browse;
+using KvsCache.ConsoleDraw;
+using KvsCache.KeyVaults;
+using KvsCache.Models;
 using Newtonsoft.Json;
 
-namespace kcs_cache;
+namespace KvsCache;
 
 public class Controller
 {

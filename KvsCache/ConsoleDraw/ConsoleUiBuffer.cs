@@ -1,7 +1,7 @@
-using kcs_cache.Browse;
-using kcs_cache.Models;
+using KvsCache.Browse;
+using KvsCache.Models;
 
-namespace kcs_cache.ConsoleDraw;
+namespace KvsCache.ConsoleDraw;
 
 public record ConsoleColors(ConsoleColor ForegroundColor, ConsoleColor BackgroundColor);
 

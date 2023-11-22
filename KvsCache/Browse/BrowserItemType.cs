@@ -1,4 +1,4 @@
-namespace kcs_cache.Browse;
+namespace KvsCache.Browse;
 
 public enum BrowserItemType
 {

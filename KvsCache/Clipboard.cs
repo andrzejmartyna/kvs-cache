@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace kcs_cache;
+namespace KvsCache;
 
 // copied from and adjusted / credits to: https://stackoverflow.com/a/45338239/669692
 public static class OperatingSystem

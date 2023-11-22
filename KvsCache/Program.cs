@@ -1,5 +1,5 @@
-﻿using kcs_cache;
-using kcs_cache.Models;
+﻿using KvsCache;
+using KvsCache.Models;
 
 var minHeight = 10;
 var optimalHeight = 20;

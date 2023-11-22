@@ -1,4 +1,4 @@
-namespace kcs_cache.Models;
+namespace KvsCache.Models;
 
 public record SubscriptionInfo(string? Id, string? Name
 //             //TODO: find out why TenantId is null

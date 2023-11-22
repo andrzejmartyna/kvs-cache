@@ -1,6 +1,6 @@
-using kcs_cache.Models;
+using KvsCache.Models;
 
-namespace kcs_cache.Browse;
+namespace KvsCache.Browse;
 
 public class BrowseGeometry
 {

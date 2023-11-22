@@ -1,6 +1,5 @@
 # MUST 1.1
 
-- rename folders and namespaces to avoid kvs_cache
 - lazy loading, cache and refresh fragments independently
   - handle Azure exception gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))
   - secrets found (XXX):

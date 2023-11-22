@@ -1,6 +1,6 @@
-using kcs_cache.ConsoleDraw;
+using KvsCache.ConsoleDraw;
 
-namespace kcs_cache.Browse;
+namespace KvsCache.Browse;
 
 public class BrowseContext
 {

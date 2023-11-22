@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using kcs_cache.ConsoleDraw;
-using kcs_cache.Models;
+using KvsCache.ConsoleDraw;
+using KvsCache.Models;
 
-namespace kcs_cache.Browse;
+namespace KvsCache.Browse;
 
 public class Browser
 {

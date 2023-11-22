@@ -4,9 +4,9 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Secrets;
-using kcs_cache.Models;
+using KvsCache.Models;
 
-namespace kcs_cache.KeyVaults;
+namespace KvsCache.KeyVaults;
 
 public class KeyVaultSecretsRepository
 {

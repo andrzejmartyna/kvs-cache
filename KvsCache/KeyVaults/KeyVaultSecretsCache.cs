@@ -1,7 +1,7 @@
-using kcs_cache.Models;
+using KvsCache.Models;
 using Newtonsoft.Json;
 
-namespace kcs_cache.KeyVaults;
+namespace KvsCache.KeyVaults;
 
 public class KeyVaultSecretsCache
 {
