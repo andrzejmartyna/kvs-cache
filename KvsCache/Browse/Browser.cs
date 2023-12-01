@@ -21,7 +21,7 @@ public class Browser
 
     private BrowserItem? _parent;
     private Dictionary<string, BrowseState> _filteredStates = new();
-    private List<(string, object)> _allItems = new();
+    private List<BrowserItem> _allItems = new();
     
     public Browser(BrowseContext context, Action<BrowserItem, BrowseContext> onEnter, Action<BrowserItem>? onInfo, string itemsName, bool exitOnLeft)
     {
@@ -33,11 +33,11 @@ public class Browser
         _itemsName = itemsName;
     }
 
-    public void Browse(IEnumerable<(string, object)> items, BrowserItem? parentItem)
+    public void Browse(IEnumerable<BrowserItem> items, BrowserItem? parentItem)
     {
         _context.Console.PushSnapshot();
 
-        var enterPreviousSelection = _state is { Count: > 0, Entered: true } && _allItems.Any(a => 0 == string.Compare(a.Item1, _state.Selected.DisplayName, StringComparison.InvariantCultureIgnoreCase));
+        var enterPreviousSelection = _state is { Count: > 0, Entered: true } && _allItems.Any(a => 0 == string.Compare(a.DisplayName, _state.Selected.DisplayName, StringComparison.InvariantCultureIgnoreCase));
         _parent = parentItem;
         _allItems = items.ToList();
         
@@ -202,9 +202,6 @@ public class Browser
     
     private static string[] SplitFilter(string filter) => CleanFilter(filter).Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-    private static bool ItemShouldBeVisible(string itemName, string filter)
-        => string.IsNullOrWhiteSpace(filter) || ItemShouldBeVisible(itemName, SplitFilter(filter));
-
     private static bool ItemShouldBeVisible(string itemName, IEnumerable<string> words)
     {
         return words.All(word => itemName.Contains(word, StringComparison.InvariantCultureIgnoreCase));
@@ -224,7 +221,7 @@ public class Browser
             else
             {
                 var words = SplitFilter(newFilter);
-                newState = new BrowseState(_allItems.Where(item => ItemShouldBeVisible(item.Item1, words)).ToList(), _parent, newFilter);
+                newState = new BrowseState(_allItems.Where(item => ItemShouldBeVisible(item.DisplayName, words)).ToList(), _parent, newFilter);
             }
         }
 

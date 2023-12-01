@@ -52,7 +52,7 @@ public class Controller
         
         InitialDraw();
         
-        _currentCache = KeyVaultSecretsCache.ReadCacheFromFile(_cacheFile);
+        _currentCache = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
         if (_currentCache == null)
         {
             Progress.Run(CacheOrReadSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
@@ -77,11 +77,10 @@ public class Controller
         {
             DrawStatistics();
             
-            //TODO: enable after implementing lazy loading
-            // if (!_currentCache.IsValidAge(_cacheMaxAge))
-            // {
-            //     refreshEvent.Set();
-            // }
+            if (!_currentCache.IsValidAge(_cacheMaxAge))
+            {
+                refreshEvent.Set();
+            }
 
             var cts = new CancellationTokenSource();
             browsingContext.SetCancelationToken(cts.Token);
@@ -89,7 +88,7 @@ public class Controller
             var browsingTcs = new TaskCompletionSource<bool>();
             var browsingTask = Task.Run(() =>
             {
-                browsingContext[0].Browse(_currentCache.Subscriptions.Select(a => (a.Name, (object)a)), null);
+                browsingContext[0].Browse(_currentCache.Subscriptions, null);
                 browsingTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -136,7 +135,10 @@ public class Controller
         
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        context[1].Browse(((Subscription)selected.Items[0]).KeyVaults.Select(a => (a.Name, (object)a)), selected);
+        
+        //TODO: cache it
+        context[1].Browse(_keyVaultSecretsRepository.GetKeyVaults(selected), selected);
+        
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
@@ -146,7 +148,10 @@ public class Controller
 
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        context[2].Browse(((KeyVault)selected.Items[0]).Secrets.Select(a => (a.Name, (object)a)), selected);
+        
+        //TODO: cache it
+        context[2].Browse(_keyVaultSecretsRepository.GetSecrets(selected), selected);
+
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
@@ -162,13 +167,13 @@ public class Controller
     
     private void InfoOrReadSecretValue(BrowserItem selected, bool info)
     {
-        var subscription = (Subscription?)selected.Parent?.Parent?.Items[0];
-        var keyVault = (KeyVault?)selected.Parent?.Items[0];
-        var secret = (Secret)selected.Items[0];
+        var subscription = (Subscription?)selected.Parent?.Parent?.Children?.FirstOrDefault()?.Self;
+        var keyVault = (KeyVault?)selected.Parent?.Children?.FirstOrDefault()?.Self;
+        var secret = (Secret?)selected.Children?.FirstOrDefault()?.Self;
         var secretValue = string.Empty;
-        if (keyVault == null)
+        if (keyVault == null || secret == null)
         {
-            _console.Message($"Internal error - no KeyVault found for the {secret.Name} secret", _console.RedMessage);
+            _console.Message($"Internal error - no KeyVault found for the {secret?.Name} secret", _console.RedMessage);
             return;
         }
 
@@ -193,7 +198,7 @@ public class Controller
         else
         {
             Clipboard.SetText(secretValue);
-            _console.Message($"Value of the secret was copied to the clipboard.", _console.GreenMessage);
+            _console.Message("Value of the secret was copied to the clipboard.", _console.GreenMessage);
         }
     }
 
@@ -248,7 +253,7 @@ public class Controller
         _console.WriteAt(info.Left, info.Top + 2, $"      Secrets: {_currentCache.SecretCount}");
 
         var refreshed = _geometry.RefreshedRectangle;
-        var refreshedAt = $"Refreshed at {_currentCache.ReadStartedAt}";
+        var refreshedAt = $"Refreshed at {_currentCache.CachedAt}";
         _console.WriteAt(refreshed.Right - refreshedAt.Length + 1, refreshed.Top, refreshedAt);
 
         var tips = _geometry.TipsRectangle;

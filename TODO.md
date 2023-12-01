@@ -29,6 +29,7 @@
 - show age of cache
 - fix bug: Ctrl-C on the message does not work immediately but after exiting the message using another key
 - Esc - first press should clean the filter
+- Set Env variable
 
 # COULD
 

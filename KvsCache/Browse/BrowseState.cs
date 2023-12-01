@@ -12,7 +12,7 @@ public class BrowseState
     
     private List<BrowserItem> _items = new();
 
-    public BrowseState(IEnumerable<(string, object)> items, BrowserItem? parentItem, string filter)
+    public BrowseState(IEnumerable<BrowserItem> items, BrowserItem? parentItem, string filter)
     {
         Filter = filter;
         ResetItems(items, parentItem);
@@ -26,14 +26,14 @@ public class BrowseState
         Selection = new BrowserSelection(firstDisplayed, selected);
     }
 
-    public void ResetItems(IEnumerable<(string, object)> items, BrowserItem? parentItem)
+    public void ResetItems(IEnumerable<BrowserItem> items, BrowserItem? parentItem)
     {
-        var itemSorted = new SortedDictionary<string, object>(items.ToDictionary(a => a.Item1, a => a.Item2));
+        var itemSorted = new SortedDictionary<string, BrowserItem>(items.ToDictionary(a => a.DisplayName, a => a));
 
         _items = new List<BrowserItem>();
         foreach (var item in itemSorted)
         {
-            _items.Add(new BrowserItem(BrowserItemType.Single, item.Key, new [] { item.Value }, parentItem));
+            _items.Add(new BrowserItem(BrowserItemType.Fetched, item.Value.Self, new dynamic[] { item.Value }, parentItem, string.Empty, DateTime.MinValue));
         }
     }
 }

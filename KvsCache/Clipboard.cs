@@ -33,7 +33,7 @@ public static class Shell
     }
 
     private static string Run (string filename, string arguments){
-        var process = new Process()
+        var process = new Process
         {
             StartInfo = new ProcessStartInfo
             {
