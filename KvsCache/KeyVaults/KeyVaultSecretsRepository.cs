@@ -1,4 +1,3 @@
-using System.Collections;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -6,7 +5,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Secrets;
 using KvsCache.Browse;
-using KvsCache.Models;
+using KvsCache.Models.Azure;
 
 namespace KvsCache.KeyVaults;
 

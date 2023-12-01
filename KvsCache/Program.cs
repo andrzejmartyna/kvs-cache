@@ -1,5 +1,5 @@
 ﻿using KvsCache;
-using KvsCache.Models;
+using KvsCache.Models.Geometry;
 
 var minHeight = 10;
 var optimalHeight = 20;

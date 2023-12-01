@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using KvsCache.ConsoleDraw;
-using KvsCache.Models;
+using KvsCache.Models.Geometry;
 
 namespace KvsCache.Browse;
 

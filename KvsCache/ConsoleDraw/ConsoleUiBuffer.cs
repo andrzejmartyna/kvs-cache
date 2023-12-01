@@ -1,5 +1,5 @@
 using KvsCache.Browse;
-using KvsCache.Models;
+using KvsCache.Models.Geometry;
 
 namespace KvsCache.ConsoleDraw;
 

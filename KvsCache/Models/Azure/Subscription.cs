@@ -1,3 +1,3 @@
-namespace KvsCache.Models;
+namespace KvsCache.Models.Azure;
 
 public record Subscription(string? Id, string Name, string? TenantId, List<KeyVault> KeyVaults);

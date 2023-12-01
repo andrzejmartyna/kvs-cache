@@ -2,7 +2,8 @@ using System.Reflection;
 using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
 using KvsCache.KeyVaults;
-using KvsCache.Models;
+using KvsCache.Models.Azure;
+using KvsCache.Models.Geometry;
 using Newtonsoft.Json;
 
 namespace KvsCache;
