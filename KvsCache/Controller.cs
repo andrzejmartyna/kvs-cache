@@ -1,7 +1,7 @@
 using System.Reflection;
 using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
-using KvsCache.KeyVaults;
+using KvsCache.Harvest;
 using KvsCache.Models.Azure;
 using KvsCache.Models.Errors;
 using KvsCache.Models.Geometry;
@@ -11,16 +11,11 @@ namespace KvsCache;
 
 public class Controller
 {
-    private string _cacheFile = "kvs-cache.json";
-    private TimeSpan _cacheMaxAge = new TimeSpan(1, 0, 0, 0);
-
-    private KeyVaultSecretsCache? _currentCache;
     private readonly ConsoleUi _console;
     private readonly BrowseGeometry _geometry;
-    private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
+    private readonly Harvester _harvester = new();
     private readonly ManualResetEvent _breakPressed = new(false);
-    private int _testSleepInfo;
-    private int _testSleepSecret;
+    private int _testSleep;
 
     public Controller(Rectangle operationRectangle)
     {
@@ -28,43 +23,19 @@ public class Controller
         _console = new ConsoleUi(_geometry);
     }
 
-    private void CacheOrReadSecrets() => ReadingSecrets(_cacheMaxAge);
-    private void RereadSecrets() => ReadingSecrets(new TimeSpan());
-
-    private void ReadingSecrets(TimeSpan maxAge)
-    {
-        var cacheOrError = KeyVaultSecretsCache.ObtainValidCache(_cacheFile, maxAge, _keyVaultSecretsRepository);
-        if (cacheOrError.TryPickT0(out var cache, out var error))
-        {
-            _currentCache = cache;
-        }
-        //TODO: not to loose error
-        if (_testSleepInfo > 0)
-        {
-            Thread.Sleep(_testSleepInfo);
-        }
-    }
-
     public void Break()
     {
         _breakPressed.Set();
     }
     
-    public void Execute(int testSleepInfo, int testSleepSecret)
+    public void Execute(int testSleep)
     {
-        _testSleepInfo = testSleepInfo;
-        _testSleepSecret = testSleepSecret;
+        _testSleep = testSleep;
         
         Console.CursorVisible = false;
         
         InitialDraw();
         
-        _currentCache = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
-        if (_currentCache == null)
-        {
-            Progress.Run(CacheOrReadSecrets, _console, _geometry.RefreshedRectangle, "Collecting information");
-        }
-
         BrowseSubscriptions();
 
         OnExit();
@@ -72,8 +43,6 @@ public class Controller
 
     private void BrowseSubscriptions()
     {
-        if (_currentCache == null) return;
-        
         var refreshEvent = new ManualResetEvent(false);
         var browsingContext = new BrowseContext(_console, refreshEvent);
         browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, null, "Subscriptions", false));
@@ -84,19 +53,13 @@ public class Controller
         {
             DrawStatistics();
             
-            if (!_currentCache.IsValidAge(_cacheMaxAge))
-            {
-                refreshEvent.Set();
-            }
-
             var cts = new CancellationTokenSource();
-            browsingContext.SetCancelationToken(cts.Token);
+            browsingContext.SetCancellationToken(cts.Token);
 
             var browsingTcs = new TaskCompletionSource<bool>();
             var browsingTask = Task.Run(() =>
             {
-                //TODO: cache it!
-                browsingContext[0].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetSubscriptions(), null), null);
+                browsingContext[0].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress(() =>  _harvester.GetSubscriptions()), null), null);
                 browsingTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -115,7 +78,7 @@ public class Controller
             var refreshTcs = new TaskCompletionSource<bool>();
             var refreshTask = Task.Run(() =>
             {
-                Progress.Run(RereadSecrets, _console, _geometry.RefreshedRectangle, "Reading");
+                //TODO: Progress.Run(RereadSecrets, _console, _geometry.RefreshedRectangle, "Reading");
                 refreshTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -139,28 +102,24 @@ public class Controller
 
     private void BrowseKeyVaults(BrowserItem selected, BrowseContext context)
     {
-        if (_currentCache == null) return;
-        
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
         
         //TODO: cache it!
-        context[1].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetKeyVaults(selected.Self), selected), selected);
+        context[1].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress<List<KeyVault>>(() =>  _harvester.GetKeyVaults(selected.Self)), selected), selected);
         
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
     private void BrowseSecrets(BrowserItem selected, BrowseContext context)
     {
-        if (_currentCache == null) return;
-
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
 
         if (selected.Self is KeyVault kv)
         {
             //TODO: cache it!
-            context[2].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetSecrets(kv.Url), selected), selected);
+            context[2].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress(() =>  _harvester.GetSecrets(kv.Url)), selected), selected);
         }
         
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
@@ -198,16 +157,7 @@ public class Controller
             return;
         }
         
-        OneOrError<string> secretValueOrError = string.Empty;
-        Progress.Run(() =>
-        {
-            secretValueOrError = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
-            if (_testSleepSecret > 0)
-            {
-                Thread.Sleep(_testSleepSecret);
-            }
-        }, _console, _geometry.ReadingProgressRectangle, "Reading");
-
+        var secretValueOrError = RunBlockingOperationWithProgress(() =>  _harvester.GetSecretValue(keyVault.Url, secret.Name));
         secretValueOrError.Switch(
             str =>
             {
@@ -216,6 +166,20 @@ public class Controller
             },
             err => _console.Message($"There was an error getting the secret value.\r\n{err.Message}", _console.RedMessage)
         );
+    }
+
+    private OneOrError<T> RunBlockingOperationWithProgress<T>(Func<OneOrError<T>> function)
+    {
+        OneOrError<T> resultOrError = new ErrorInfo("Execution failed");
+        Progress.Run(() =>
+        {
+            resultOrError = function();
+            if (_testSleep > 0)
+            {
+                Thread.Sleep(_testSleep);
+            }
+        }, _console, _geometry.ReadingProgressRectangle, "Reading");
+        return resultOrError;
     }
 
     public void DrawTestBoard()
@@ -255,22 +219,16 @@ public class Controller
         _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
 
         var versionInfo = _geometry.VersionHeaderLine.Rectangle;
-        string version = $"kvs-cache v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "..."}";
+        var version = $"kvs-cache v{Assembly.GetExecutingAssembly().GetName().Version?.ToString(2) ?? "..."}";
         _console.WriteAt(versionInfo.Right - version.Length + 1, versionInfo.Top, version);
     }
 
     private void DrawStatistics()
     {
-        if (_currentCache == null) return;
-
         var info = _geometry.SummaryRectangle;
-        _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_currentCache.SubscriptionCount}");
-        _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_currentCache.KeyVaultCount}");
-        _console.WriteAt(info.Left, info.Top + 2, $"      Secrets: {_currentCache.SecretCount}");
-
-        var refreshed = _geometry.RefreshedRectangle;
-        var refreshedAt = $"Refreshed at {_currentCache.CachedAt}";
-        _console.WriteAt(refreshed.Right - refreshedAt.Length + 1, refreshed.Top, refreshedAt);
+        _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_harvester.SubscriptionCount}");
+        _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_harvester.KeyVaultCount}");
+        _console.WriteAt(info.Left, info.Top + 2, $"      Secrets: {_harvester.SecretCount}");
 
         var tips = _geometry.TipsRectangle;
         _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc");

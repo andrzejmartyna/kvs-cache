@@ -11,13 +11,13 @@ public class ConsoleUiBuffer
 {
     public BrowseGeometry Geometry { get; init; }
 
-    private List<string> _textBuffer;
-    private int[,] _colorsBuffer;
-    private List<ConsoleColors> _colors = new List<ConsoleColors>();
+    private readonly List<string> _textBuffer;
+    private readonly int[,] _colorsBuffer;
+    private readonly List<ConsoleColors> _colors = new();
     private Point _cursor;
     private int _currentColor;
     private Rectangle _invalidatedArea;
-    private object _lock = new();
+    private readonly object _lock = new();
 
     public ConsoleUiBuffer(ConsoleUiBuffer originalBuffer)
     {
@@ -31,9 +31,9 @@ public class ConsoleUiBuffer
         InvalidateAll();
     }
 
-    public ConsoleUiBuffer(BrowseGeometry _geometry, ConsoleColors defaultColors)
+    public ConsoleUiBuffer(BrowseGeometry geometry, ConsoleColors defaultColors)
     {
-        Geometry = _geometry;
+        Geometry = geometry;
 
         _textBuffer = new List<string>();
         var emptyLine = new string(' ', Geometry.Full.Width);
@@ -69,7 +69,7 @@ public class ConsoleUiBuffer
     public void Write(string text)
     {
         _textBuffer[_cursor.Y] = _textBuffer[_cursor.Y].Remove(_cursor.X, text.Length).Insert(_cursor.X, text);
-        for (int x = 0; x < text.Length; ++x)
+        for (var x = 0; x < text.Length; ++x)
         {
             _colorsBuffer[_cursor.X + x, _cursor.Y] = _currentColor;
         }

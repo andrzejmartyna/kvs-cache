@@ -15,7 +15,7 @@ public static class Progress
         taskProgress.Wait();
     }
     
-    private static void Run(ConsoleUi console, Rectangle rectangle, string prefix, Task workingTask)
+    private static void Run(ConsoleUi console, Rectangle rectangle, string prefix, IAsyncResult workingTask)
     {
         var writtenStarted = false;
         var periodCounterDown = 5;

@@ -1,8 +1,7 @@
 using KvsCache.Models.Azure;
 using KvsCache.Models.Errors;
-using Newtonsoft.Json;
 
-namespace KvsCache.KeyVaults;
+namespace KvsCache.Harvest;
 
 public class KeyVaultSecretsCache
 {
@@ -10,24 +9,6 @@ public class KeyVaultSecretsCache
     
     public DateTime CachedAt { get; private init; }
     public List<Subscription> Subscriptions { get; private init; } = new();
-
-    public string SubscriptionCount => Subscriptions.Count.ToString();
-    public string KeyVaultCount => "?"; // Subscriptions.Sum(s => s.KeyVaults.Count);
-    public string SecretCount => "?"; //Subscriptions.Sum(s => s.KeyVaults.Sum(kv => kv.Secrets.Count));
-
-    public bool IsValidAge(TimeSpan maxAge) => DateTime.Now - CachedAt <= maxAge;
-
-    public static OneOrError<KeyVaultSecretsCache> ObtainValidCache(string filePath, TimeSpan maxAge, KeyVaultSecretsRepository keyVaultSecretsRepository)
-    {
-        var cache = ReadFromFile(filePath);
-        if (cache != null && cache.IsValidAge(maxAge))
-        {
-            return cache;
-        }
-
-        //TODO: rescan and reread all existing BrowserItem2 which are too old
-        return ReadFromAzure(filePath, keyVaultSecretsRepository);
-    }
 
     public static OneOrError<KeyVaultSecretsCache> ReadFromAzure(string filePath, KeyVaultSecretsRepository keyVaultSecretsRepository)
     {

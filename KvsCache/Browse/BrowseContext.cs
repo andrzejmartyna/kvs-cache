@@ -20,7 +20,7 @@ public class BrowseContext
 
     public void AddBrowser(Browser browser) => _browsers.Add(browser);
 
-    public void SetCancelationToken(CancellationToken token)
+    public void SetCancellationToken(CancellationToken token)
     {
         CancellationToken = token;
     }

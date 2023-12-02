@@ -230,14 +230,7 @@ public class Browser
 
         var header = Geometry.SelectionHeaderLine;
         _context.Console.DrawHorizontalLine(header, false);
-        if (_state.Count <= 0)
-        {
-            _context.Console.WriteAt(header.Left, header.Top, $"No {_itemsName} found");
-        }
-        else
-        {
-            _context.Console.WriteAt(header.Left, header.Top, $"{_itemsName} found:");
-        }
+        _context.Console.WriteAt(header.Left, header.Top, _state.Count <= 0 ? $"No {_itemsName} found" : $"{_itemsName} found:");
 
         if (!string.IsNullOrWhiteSpace(_state.Filter))
         {

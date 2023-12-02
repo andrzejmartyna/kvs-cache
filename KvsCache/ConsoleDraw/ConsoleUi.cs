@@ -8,12 +8,12 @@ public class ConsoleUi
     public BrowseGeometry Geometry => _uiBuffer.Geometry;
 
     private ConsoleUiBuffer _uiBuffer;
-    private Stack<ConsoleUiBuffer> _snapshots = new Stack<ConsoleUiBuffer>();
+    private readonly Stack<ConsoleUiBuffer> _snapshots = new();
     private Point _cursor = new(0, 0);
     
-    public ConsoleUi(BrowseGeometry _geometry)
+    public ConsoleUi(BrowseGeometry geometry)
     {
-        _uiBuffer = new ConsoleUiBuffer(_geometry, new ConsoleColors(Console.ForegroundColor, Console.BackgroundColor));
+        _uiBuffer = new ConsoleUiBuffer(geometry, new ConsoleColors(Console.ForegroundColor, Console.BackgroundColor));
     }
 
     public void DrawDoubleRectangle(int left, int top, int right, int bottom)

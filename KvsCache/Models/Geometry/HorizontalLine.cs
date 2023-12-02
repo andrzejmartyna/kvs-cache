@@ -1,6 +1,6 @@
 namespace KvsCache.Models.Geometry;
 
-public struct HorizontalLine
+public readonly struct HorizontalLine
 {
     public int Left { get; init; }
     public int Top { get; init; }
@@ -13,5 +13,5 @@ public struct HorizontalLine
         Width = width;
     }
 
-    public Rectangle Rectangle => new Rectangle(Left, Top, Width, 1);
+    public Rectangle Rectangle => new(Left, Top, Width, 1);
 }

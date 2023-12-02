@@ -1,10 +1,10 @@
 ﻿using KvsCache;
 using KvsCache.Models.Geometry;
 
-var minHeight = 10;
-var optimalHeight = 20;
-var minWidth = 70;
-var optimalWidth = 80;
+const int minHeight = 10;
+const int optimalHeight = 20;
+const int minWidth = 70;
+const int optimalWidth = 80;
 var currentHeight = Console.WindowHeight;
 var currentWidth = Console.WindowWidth;
 if (currentHeight < minHeight || currentWidth < minHeight)
@@ -29,8 +29,7 @@ Console.CancelKeyPress += delegate(object? _, ConsoleCancelEventArgs e)
     e.Cancel = true;
 };
 
-var testSleepInfo = 0;
-var testSleepSecret = 0;
+var testSleep = 0;
 if (args.Length > 0)
 {
     switch (args[0])
@@ -42,10 +41,9 @@ if (args.Length > 0)
             controller.TestKeys();
             return;
         case "--testsleep":
-            testSleepInfo = args.Length >= 2 && int.TryParse(args[1], out var testSleepInfoGiven) ? testSleepInfoGiven : 4000;
-            testSleepSecret = args.Length >= 3 && int.TryParse(args[2], out var testSleepSecretGiven) ? testSleepSecretGiven : testSleepInfo / 2;
+            testSleep = args.Length >= 2 && int.TryParse(args[1], out var testSleepGiven) ? testSleepGiven : 4000;
             break;
     }
 }
 
-controller.Execute(testSleepInfo, testSleepSecret);
+controller.Execute(testSleep);

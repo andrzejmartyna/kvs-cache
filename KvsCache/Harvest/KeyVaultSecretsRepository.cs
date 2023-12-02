@@ -7,7 +7,7 @@ using Azure.Security.KeyVault.Secrets;
 using KvsCache.Models.Azure;
 using KvsCache.Models.Errors;
 
-namespace KvsCache.KeyVaults;
+namespace KvsCache.Harvest;
 
 public class KeyVaultSecretsRepository
 {
@@ -45,28 +45,19 @@ public class KeyVaultSecretsRepository
             {
                 return error;
             }
-            
-            var keyVaults = new List<KeyVault>();
+
             var keyVaultResources = subscriptionResource.GetGenericResources("resourceType eq 'Microsoft.KeyVault/vaults'").ToList();
-            foreach (var kv in keyVaultResources)
-            {
-                var azureKeyVaultName = kv.Data.Name;
-                var azureKeyVaultUrl = BuildKeyVaultUrl(azureKeyVaultName);
-                keyVaults.Add(new KeyVault(kv.Id, azureKeyVaultName, azureKeyVaultUrl));
-            }
-            return keyVaults;
+            return (from kv in keyVaultResources
+                let azureKeyVaultName = kv.Data.Name
+                let azureKeyVaultUrl = BuildKeyVaultUrl(azureKeyVaultName)
+                select new KeyVault(kv.Id, azureKeyVaultName, azureKeyVaultUrl)).ToList();
         });
 
     public OneOrError<List<Secret>> GetSecrets(string azureKeyVaultUrl) =>
         ProtectFromRequestFailing<List<Secret>>(() =>
         {
-            var secrets = new List<Secret>();
             var secretClient = new SecretClient(new Uri(azureKeyVaultUrl), _credentials);
-            foreach (var sp in secretClient.GetPropertiesOfSecrets())
-            {
-                secrets.Add(new Secret(sp.Id.ToString(), sp.Name));
-            }
-            return secrets;
+            return secretClient.GetPropertiesOfSecrets().Select(sp => new Secret(sp.Id.ToString(), sp.Name)).ToList();
         });
 
     public OneOrError<string> GetSecretValue(string keyVaultUrl, string secretName) =>

@@ -1,4 +1,3 @@
-using System.Collections;
 using KvsCache.Models.Errors;
 
 namespace KvsCache.Browse;

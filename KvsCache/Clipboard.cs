@@ -21,15 +21,13 @@ public static class Shell
     public static string Bash(this string cmd)
     {
         var escapedArgs = cmd.Replace("\"", "\\\"");
-        string result = Run("/bin/bash", $"-c \"{escapedArgs}\"");
-        return result;
+        return Run("/bin/bash", $"-c \"{escapedArgs}\"");
     }
 
     public static string Bat(this string cmd)
     {
         var escapedArgs = cmd.Replace("\"", "\\\"");
-        string result = Run("cmd.exe", $"/c \"{escapedArgs}\"");
-        return result;
+        return Run("cmd.exe", $"/c \"{escapedArgs}\"");
     }
 
     private static string Run (string filename, string arguments){
@@ -45,7 +43,7 @@ public static class Shell
             }
         };
         process.Start();
-        string result = process.StandardOutput.ReadToEnd();
+        var result = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
         return result;
     }
