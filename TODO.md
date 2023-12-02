@@ -33,6 +33,7 @@
 
 # COULD
 
+- functionality to display list of licenses of third party libraries used
 - replace places with old style cast of objects to Subscription/KeyVault/Secret
 - parametrize app settings
 - enter/browse versions of a secret

@@ -38,6 +38,7 @@ I plan to introduce lazy loading in next version but before that I disabled auto
 
 # More information
 
-- [ReleaseNotes.md](ReleaseNotes.md)
-- [TODO.md](TODO.md)
-- [LICENSE](LICENSE)
+- [Licenses of libraries used by KvsCache (thank you to all authors and contributors!)](LICENSES/LICENCES.md)
+- [Licence of KvsCache](LICENSE)
+- [ReleaseNotes](ReleaseNotes.md)
+- [TO DO](TODO.md)

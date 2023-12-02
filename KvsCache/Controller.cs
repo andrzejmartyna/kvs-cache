@@ -3,6 +3,7 @@ using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
 using KvsCache.KeyVaults;
 using KvsCache.Models.Azure;
+using KvsCache.Models.Errors;
 using KvsCache.Models.Geometry;
 using Newtonsoft.Json;
 
@@ -32,7 +33,12 @@ public class Controller
 
     private void ReadingSecrets(TimeSpan maxAge)
     {
-        _currentCache = KeyVaultSecretsCache.ObtainValidCache(_cacheFile, maxAge, _keyVaultSecretsRepository);
+        var cacheOrError = KeyVaultSecretsCache.ObtainValidCache(_cacheFile, maxAge, _keyVaultSecretsRepository);
+        if (cacheOrError.TryPickT0(out var cache, out var error))
+        {
+            _currentCache = cache;
+        }
+        //TODO: not to loose error
         if (_testSleepInfo > 0)
         {
             Thread.Sleep(_testSleepInfo);
@@ -89,7 +95,8 @@ public class Controller
             var browsingTcs = new TaskCompletionSource<bool>();
             var browsingTask = Task.Run(() =>
             {
-                browsingContext[0].Browse(_currentCache.Subscriptions, null);
+                //TODO: cache it!
+                browsingContext[0].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetSubscriptions(), null), null);
                 browsingTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -137,8 +144,8 @@ public class Controller
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
         
-        //TODO: cache it
-        context[1].Browse(_keyVaultSecretsRepository.GetKeyVaults(selected), selected);
+        //TODO: cache it!
+        context[1].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetKeyVaults(selected.Self), selected), selected);
         
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
@@ -149,10 +156,13 @@ public class Controller
 
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
-        
-        //TODO: cache it
-        context[2].Browse(_keyVaultSecretsRepository.GetSecrets(selected), selected);
 
+        if (selected.Self is KeyVault kv)
+        {
+            //TODO: cache it!
+            context[2].Browse(BrowserItem.PackForBrowsing(_keyVaultSecretsRepository.GetSecrets(kv.Url), selected), selected);
+        }
+        
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
     }
 
@@ -168,39 +178,44 @@ public class Controller
     
     private void InfoOrReadSecretValue(BrowserItem selected, bool info)
     {
-        var subscription = (Subscription?)selected.Parent?.Parent?.Children?.FirstOrDefault()?.Self;
         var keyVault = (KeyVault?)selected.Parent?.Children?.FirstOrDefault()?.Self;
         var secret = (Secret?)selected.Children?.FirstOrDefault()?.Self;
-        var secretValue = string.Empty;
         if (keyVault == null || secret == null)
         {
             _console.Message($"Internal error - no KeyVault found for the {secret?.Name} secret", _console.RedMessage);
             return;
         }
 
-        Progress.Run(() =>
-        {
-            secretValue = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
-            if (_testSleepSecret > 0)
-            {
-                Thread.Sleep(_testSleepSecret);
-            }
-        }, _console, _geometry.ReadingProgressRectangle, "Reading");
-        
         if (info)
         {
+            var subscription = (Subscription?)selected.Parent?.Parent?.Children?.FirstOrDefault()?.Self;
             var secretInfo = new SecretFullInfo(
                 new SubscriptionInfo(subscription?.Id, subscription?.Name),
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
                 new SecretInfo(secret.Name));
             Clipboard.SetText(JsonConvert.SerializeObject(secretInfo, Formatting.Indented));
             _console.Message("The clipboard was filled with full information about the secret.", _console.GreenMessage);
+            return;
         }
-        else
+        
+        OneOrError<string> secretValueOrError = string.Empty;
+        Progress.Run(() =>
         {
-            Clipboard.SetText(secretValue);
-            _console.Message("Value of the secret was copied to the clipboard.", _console.GreenMessage);
-        }
+            secretValueOrError = _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secret.Name);
+            if (_testSleepSecret > 0)
+            {
+                Thread.Sleep(_testSleepSecret);
+            }
+        }, _console, _geometry.ReadingProgressRectangle, "Reading");
+
+        secretValueOrError.Switch(
+            str =>
+            {
+                Clipboard.SetText(str);
+                _console.Message("Value of the secret was copied to the clipboard.", _console.GreenMessage);
+            },
+            err => _console.Message($"There was an error getting the secret value.\r\n{err.Message}", _console.RedMessage)
+        );
     }
 
     public void DrawTestBoard()
