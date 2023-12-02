@@ -4,9 +4,9 @@ namespace KvsCache.Browse;
 
 public class BrowseContext
 {
-    public ConsoleUi Console { get; init; }
+    public ConsoleUi Console { get; }
     public CancellationToken CancellationToken { get; private set; }
-    public ManualResetEvent RefreshEvent { get; init; }
+    public ManualResetEvent RefreshEvent { get; }
     
     private readonly List<Browser> _browsers = new();
 

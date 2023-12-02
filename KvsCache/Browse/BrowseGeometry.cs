@@ -4,7 +4,7 @@ namespace KvsCache.Browse;
 
 public class BrowseGeometry
 {
-    public Rectangle Full { get; init; }
+    public Rectangle Full { get; }
     public Rectangle SummaryRectangle => new(Full.Left + 2, Full.Top + 1,  19, 3);
     public Rectangle SelectionRectangle => new(Full.Left + 22, Full.Top + 1, Full.Width - 24, 2);
     public Rectangle ReadingProgressRectangle => new(Full.Left + 22, Full.Top + 3, 14, 1);

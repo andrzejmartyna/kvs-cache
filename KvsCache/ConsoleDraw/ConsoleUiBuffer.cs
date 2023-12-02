@@ -9,7 +9,7 @@ public record Section(int X, int Y, int Color, string Text);
 
 public class ConsoleUiBuffer
 {
-    public BrowseGeometry Geometry { get; init; }
+    public BrowseGeometry Geometry { get; }
 
     private readonly List<string> _textBuffer;
     private readonly int[,] _colorsBuffer;
