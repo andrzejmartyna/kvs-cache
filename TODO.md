@@ -1,20 +1,28 @@
-# MUST 1.1
+# MUST 2.0
 
-- lazy loading, cache and refresh fragments independently
-  - handle Azure exception gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))
-  - secrets found (XXX):
-  - when a subscription or a key vault does not contain items display "(no items)"
-  - when error happened while querying list of key vaults or secrets display "(error)" on an item containing the list
+- align functionality to 1.0
+  - read cache from file
+  - write cache to file (KISS: on exit only, async job will be provided in the future)
+  - display "cached at" (KISS: no age required yet!)
+  - statistics (KISS: updated after every read)
+  - refresh on current level
+- clipboard
+  - is it possible to get clipboard and compare?
+  - fix clipboard issues
+    - https://stackoverflow.com/questions/44205260/net-core-copy-to-clipboard
+
+# MUST 2.1
+
+- handle Azure exceptions gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))
+- secrets found (XXX):
+- when a subscription or a key vault does not contain items display "(no items)"
+- when error happened while querying list of key vaults or secrets display "(error)" on an item containing the list
 - operation/context menu on secret/KV/subscription
   - Set secret value
   - Get/set secret value using base64
   - full info in Json about Subscription(s)/KeyVault/Secret
     - URLs to Azure Portal resources in output Json
   - Generate command to get/set value using scripts like Powershell, bash
-- clipboard
-  - is it possible to get clipboard and compare? 
-  - fix clipboard issues
-    - https://stackoverflow.com/questions/44205260/net-core-copy-to-clipboard
 - ready to use distribution (1.0 requires .NET SDK and building)
 
 # SHOULD
