@@ -1,4 +1,4 @@
-using KvsCache.Models.Errors;
+using KvsCache.Models.Azure;
 
 namespace KvsCache.Browse;
 
@@ -6,18 +6,18 @@ public record BrowserItem(BrowserItemType ItemType, dynamic? Self, dynamic[]? Ch
 {
     public string DisplayName => Self != null ? Self.Name : ErrorMessage;
 
-    public static IEnumerable<BrowserItem> PackForBrowsing<T>(OneOrError<List<T>> itemsOrError, BrowserItem?parent)
+    public static IEnumerable<BrowserItem> PackForBrowsing(DataChunk dataChunk, BrowserItem? parent)
     {
-        if (itemsOrError.TryPickT1(out var error, out var list))
+        if (dataChunk is { ItemsAvailable: true, Items: not null })
         {
-            yield return new BrowserItem(BrowserItemType.Error, null, null, parent, error.Message, DateTime.Now);
-        }
-        else
-        {
-            foreach (var item in list)
+            foreach (var item in dataChunk.Items)
             {
                 yield return new BrowserItem(BrowserItemType.Fetched, item, null, parent, string.Empty, DateTime.Now);
             }
+        }
+        else
+        {
+            yield return new BrowserItem(BrowserItemType.Error, null, null, parent, dataChunk.LastOperationError?.Message ?? "Unknown error", DateTime.Now);
         }
     }
 }

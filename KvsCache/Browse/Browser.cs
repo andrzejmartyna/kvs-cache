@@ -6,7 +6,7 @@ namespace KvsCache.Browse;
 
 public class Browser
 {
-    public BrowseGeometry Geometry => _context.Console.Geometry;
+    private BrowseGeometry Geometry => _context.Console.Geometry;
 
     private readonly BrowseContext _context;
     private BrowseState? _state;

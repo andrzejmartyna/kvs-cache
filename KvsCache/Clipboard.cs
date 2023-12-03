@@ -39,7 +39,7 @@ public static class Shell
                 Arguments = arguments,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                CreateNoWindow = false,
+                CreateNoWindow = false
             }
         };
         process.Start();

@@ -25,7 +25,7 @@ public class KeyVaultSecretsRepository
                 new Subscription(s.Id, s.Data.DisplayName, s.Data.ManagedByTenants.ToString())).ToList();
         });
 
-    public OneOrError<List<KeyVault>> GetKeyVaults(Subscription subscription) =>
+    public OneOrError<List<KeyVault>> GetKeyVaults(string subscriptionName) =>
         ProtectFromRequestFailing<List<KeyVault>>(() =>
         {
             var client = new ArmClient(_credentials);
@@ -33,7 +33,7 @@ public class KeyVaultSecretsRepository
             {
                 foreach (var s in client.GetSubscriptions())
                 {
-                    if (0 == string.Compare(subscription.Name, s.Data.DisplayName, StringComparison.OrdinalIgnoreCase))
+                    if (0 == string.Compare(subscriptionName, s.Data.DisplayName, StringComparison.OrdinalIgnoreCase))
                     {
                         return s;
                     }

@@ -3,7 +3,6 @@ using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
 using KvsCache.Harvest;
 using KvsCache.Models.Azure;
-using KvsCache.Models.Errors;
 using KvsCache.Models.Geometry;
 using Newtonsoft.Json;
 
@@ -13,14 +12,14 @@ public class Controller
 {
     private readonly ConsoleUi _console;
     private readonly BrowseGeometry _geometry;
-    private readonly Harvester _harvester = new();
+    private readonly Harvester _harvester;
     private readonly ManualResetEvent _breakPressed = new(false);
-    private int _testSleep;
 
     public Controller(Rectangle operationRectangle)
     {
         _geometry = new BrowseGeometry(operationRectangle);
         _console = new ConsoleUi(_geometry);
+        _harvester = new Harvester(_console, _geometry);
     }
 
     public void Break()
@@ -28,9 +27,9 @@ public class Controller
         _breakPressed.Set();
     }
     
-    public void Execute(int testSleep)
+    public void Execute(int testSleepInMs)
     {
-        _testSleep = testSleep;
+        _harvester.TestSleepInMs = testSleepInMs;
         
         Console.CursorVisible = false;
         
@@ -59,7 +58,7 @@ public class Controller
             var browsingTcs = new TaskCompletionSource<bool>();
             var browsingTask = Task.Run(() =>
             {
-                browsingContext[0].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress(() =>  _harvester.GetSubscriptions()), null), null);
+                browsingContext[0].Browse(BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(), null), null);
                 browsingTcs.SetResult(true);
             }, browsingContext.CancellationToken);
 
@@ -104,10 +103,12 @@ public class Controller
     {
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
-        
-        //TODO: cache it!
-        context[1].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress<List<KeyVault>>(() =>  _harvester.GetKeyVaults(selected.Self)), selected), selected);
-        
+
+        if (selected.Self is Subscription subscription)
+        {
+            context[1].Browse(BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription), selected), selected);
+        }
+
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
@@ -118,8 +119,7 @@ public class Controller
 
         if (selected.Self is KeyVault kv)
         {
-            //TODO: cache it!
-            context[2].Browse(BrowserItem.PackForBrowsing(RunBlockingOperationWithProgress(() =>  _harvester.GetSecrets(kv.Url)), selected), selected);
+            context[2].Browse(BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv), selected), selected);
         }
         
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
@@ -157,7 +157,7 @@ public class Controller
             return;
         }
         
-        var secretValueOrError = RunBlockingOperationWithProgress(() =>  _harvester.GetSecretValue(keyVault.Url, secret.Name));
+        var secretValueOrError = _harvester.GetSecretValue(keyVault, secret.Name);
         secretValueOrError.Switch(
             str =>
             {
@@ -166,20 +166,6 @@ public class Controller
             },
             err => _console.Message($"There was an error getting the secret value.\r\n{err.Message}", _console.RedMessage)
         );
-    }
-
-    private OneOrError<T> RunBlockingOperationWithProgress<T>(Func<OneOrError<T>> function)
-    {
-        OneOrError<T> resultOrError = new ErrorInfo("Execution failed");
-        Progress.Run(() =>
-        {
-            resultOrError = function();
-            if (_testSleep > 0)
-            {
-                Thread.Sleep(_testSleep);
-            }
-        }, _console, _geometry.ReadingProgressRectangle, "Reading");
-        return resultOrError;
     }
 
     public void DrawTestBoard()
