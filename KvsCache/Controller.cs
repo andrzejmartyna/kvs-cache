@@ -106,8 +106,8 @@ public class Controller
     
     private void InfoOrReadSecretValue(BrowserItem selected, bool info)
     {
-        var keyVault = (KeyVault?)selected.Parent?.Children?.FirstOrDefault()?.Self;
-        var secret = (Secret?)selected.Children?.FirstOrDefault()?.Self;
+        var keyVault = (KeyVault?)selected.Parent?.Self?.Items?.FirstOrDefault()?.Self;
+        var secret = (Secret?)selected.Self?.Children?.FirstOrDefault()?.Self;
         if (keyVault == null || secret == null)
         {
             _console.Message($"Internal error - no KeyVault found for the {secret?.Name} secret", _console.RedMessage);
@@ -116,7 +116,7 @@ public class Controller
 
         if (info)
         {
-            var subscription = (Subscription?)selected.Parent?.Parent?.Children?.FirstOrDefault()?.Self;
+            var subscription = (Subscription?)selected.Parent?.Parent?.Self?.Children?.FirstOrDefault()?.Self;
             var secretInfo = new SecretFullInfo(
                 new SubscriptionInfo(subscription?.Id, subscription?.Name),
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
