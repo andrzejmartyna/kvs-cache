@@ -42,59 +42,28 @@ public class Controller
 
     private void BrowseSubscriptions()
     {
-        var refreshEvent = new ManualResetEvent(false);
-        var browsingContext = new BrowseContext(_console, refreshEvent);
+        var browsingContext = new BrowseContext(_console);
         browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, null, "Subscriptions", false));
         browsingContext.AddBrowser(new Browser(browsingContext, BrowseSecrets, null, "KeyVaults", true));
         browsingContext.AddBrowser(new Browser(browsingContext, ReadSecretValue, InfoSecretValue, "Secrets", true));
         
-        while (true)
+        DrawStatistics();
+        
+        var cts = new CancellationTokenSource();
+        browsingContext.SetCancellationToken(cts.Token);
+
+        var browsingTcs = new TaskCompletionSource<bool>();
+        var browsingTask = Task.Run(() =>
         {
-            DrawStatistics();
-            
-            var cts = new CancellationTokenSource();
-            browsingContext.SetCancellationToken(cts.Token);
+            browsingContext[0].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(forceRefresh), null), null);
+            browsingTcs.SetResult(true);
+        }, browsingContext.CancellationToken);
 
-            var browsingTcs = new TaskCompletionSource<bool>();
-            var browsingTask = Task.Run(() =>
-            {
-                browsingContext[0].Browse(BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(), null), null);
-                browsingTcs.SetResult(true);
-            }, browsingContext.CancellationToken);
-
-            var  browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
-            var exitOrRefresh = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed, refreshEvent });
-            if (exitOrRefresh <= 1)
-            {
-                if (exitOrRefresh == 1)
-                {
-                    cts.Cancel();
-                    browsingTask.Wait();
-                }
-                break;
-            }
-            
-            var refreshTcs = new TaskCompletionSource<bool>();
-            var refreshTask = Task.Run(() =>
-            {
-                //TODO: Progress.Run(RereadSecrets, _console, _geometry.RefreshedRectangle, "Reading");
-                refreshTcs.SetResult(true);
-            }, browsingContext.CancellationToken);
-
-            var  refreshWaitHandle = ((IAsyncResult)refreshTcs.Task).AsyncWaitHandle;
-            var exitOrRefreshed = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed, refreshWaitHandle });
+        var  browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
+        var exitWays = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed });
+        if (exitWays == 1)
+        {
             cts.Cancel();
-            if (exitOrRefreshed <= 1)
-            {
-                if (exitOrRefreshed == 1)
-                {
-                    browsingTask.Wait();
-                }
-                refreshTask.Wait();
-                break;
-            }
-
-            refreshEvent.Reset();
             browsingTask.Wait();
         }
     }
@@ -106,7 +75,7 @@ public class Controller
 
         if (selected.Self is Subscription subscription)
         {
-            context[1].Browse(BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription), selected), selected);
+            context[1].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription, forceRefresh), selected), selected);
         }
 
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
@@ -119,7 +88,7 @@ public class Controller
 
         if (selected.Self is KeyVault kv)
         {
-            context[2].Browse(BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv), selected), selected);
+            context[2].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv, forceRefresh), selected), selected);
         }
         
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));

@@ -6,8 +6,6 @@ public class BrowseState
 
     public int Count => _items.Count;
     
-    public bool Entered { get; set; }
-    
     public BrowserSelection Selection { get; private set; } = new(0, 0);
     
     private List<BrowserItem> _items = new();

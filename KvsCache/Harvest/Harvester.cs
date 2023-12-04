@@ -28,21 +28,21 @@ public class Harvester
     public string KeyVaultCount => "?"; //TODO: Subscriptions.Sum(s => s.KeyVaults.Count);
     public string SecretCount => "?"; //TODO: Subscriptions.Sum(s => s.KeyVaults.Sum(kv => kv.Secrets.Count));
 
-    public DataChunk GetSubscriptions()
-        => GetCachedOrReadDataChunk(_cache, () => _keyVaultSecretsRepository.GetSubscriptions());
+    public DataChunk GetSubscriptions(bool forceRefresh)
+        => GetCachedOrReadDataChunk(_cache, () => _keyVaultSecretsRepository.GetSubscriptions(), forceRefresh);
 
-    public DataChunk GetKeyVaults(Subscription subscription)
-        => GetCachedOrReadDataChunk(subscription, () => _keyVaultSecretsRepository.GetKeyVaults(subscription.Name));
+    public DataChunk GetKeyVaults(Subscription subscription, bool forceRefresh)
+        => GetCachedOrReadDataChunk(subscription, () => _keyVaultSecretsRepository.GetKeyVaults(subscription.Name), forceRefresh);
 
-    public DataChunk GetSecrets(KeyVault keyVault)
-        => GetCachedOrReadDataChunk(keyVault, () => _keyVaultSecretsRepository.GetSecrets(keyVault.Url));
+    public DataChunk GetSecrets(KeyVault keyVault, bool forceRefresh)
+        => GetCachedOrReadDataChunk(keyVault, () => _keyVaultSecretsRepository.GetSecrets(keyVault.Url), forceRefresh);
 
     public OneOrError<string> GetSecretValue(KeyVault keyVault, string secretName)
         => RunBlockingOperationWithProgress(() =>  _keyVaultSecretsRepository.GetSecretValue(keyVault.Url, secretName));
 
-    private DataChunk GetCachedOrReadDataChunk<T>(DataChunk chunk, Func<OneOrError<List<T>>> readItemsFunction)
+    private DataChunk GetCachedOrReadDataChunk<T>(DataChunk chunk, Func<OneOrError<List<T>>> readItemsFunction, bool forceRefresh)
     {
-        if (CachePolicies.IsCacheValid(chunk))
+        if (!forceRefresh && CachePolicies.IsCacheValid(chunk))
         {
             return chunk;
         }

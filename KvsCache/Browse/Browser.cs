@@ -33,44 +33,15 @@ public class Browser
         _itemsName = itemsName;
     }
 
-    public void Browse(IEnumerable<BrowserItem> items, BrowserItem? parentItem)
+    public void Browse(Func<bool, IEnumerable<BrowserItem>> getItemsFunction, BrowserItem? parentItem)
     {
         _context.Console.PushSnapshot();
 
-        var enterPreviousSelection = _state is { Count: > 0, Entered: true } && _allItems.Any(a => 0 == string.Compare(a.DisplayName, _state.Selected.DisplayName, StringComparison.InvariantCultureIgnoreCase));
-        _parent = parentItem;
-        _allItems = items.ToList();
-        
-        if (_state == null)
-        {
-            _state = new BrowseState(_allItems, _parent, string.Empty);
-            ApplyFilter(_state.Filter);
-        }
-        else
-        {
-            _state.ResetItems(_allItems, parentItem);
-            _filteredStates = new Dictionary<string, BrowseState>();
-            ApplyFilter(_state.Filter);
-            _state.Entered = enterPreviousSelection;
-        }
-
-        RedrawConsole();
-        var key = enterPreviousSelection ? new ConsoleKeyInfo() : ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
+        var key = ReloadItems(false);
         while (!_context.CancellationToken.IsCancellationRequested)
         {
-            if (enterPreviousSelection)
-            {
-                enterPreviousSelection = false;
-                _onEnter(_state.Selected, _context);
-                if (_context.CancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                _state.Entered = false;
-                key = ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
-                continue;
-            }
-
+            if (_state == null) return;
+            
             if (key.Key is ConsoleKey.Escape || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
             {
                 break;
@@ -84,8 +55,8 @@ public class Browser
                         _onInfo?.Invoke(_state.Selected);
                         break;
                     case ConsoleKey.R:
-                        _context.RefreshEvent.Set();
-                        break;
+                        key = ReloadItems(true);
+                        continue;
                 }
                 
                 key = ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
@@ -99,12 +70,7 @@ public class Browser
                 case ConsoleKey.RightArrow:
                     if (_state.Count > 0)
                     {
-                        _state.Entered = true;
                         _onEnter(_state.Selected, _context);
-                        if (!_context.CancellationToken.IsCancellationRequested)
-                        {
-                            _state.Entered = false;
-                        }
                     }
                     break;
                 case ConsoleKey.UpArrow:
@@ -196,6 +162,52 @@ public class Browser
         }
 
         _context.Console.PopSnapshot();
+        return;
+
+        ConsoleKeyInfo ReloadItems(bool forceRefresh)
+        {
+            var items = getItemsFunction(forceRefresh);
+
+            var previousWindow = _state?.Selection;
+            var previousSelection = _state?.Selected.DisplayName;
+            
+            _parent = parentItem;
+            _allItems = items.ToList();
+
+            if (_state == null)
+            {
+                _state = new BrowseState(_allItems, _parent, string.Empty);
+                ApplyFilter(_state.Filter);
+            }
+            else
+            {
+                _state.ResetItems(_allItems, parentItem);
+                _filteredStates = new Dictionary<string, BrowseState>();
+                ApplyFilter(_state.Filter);
+            }
+
+            if (previousSelection != null && previousWindow != null)
+            {
+                var actualPreviousSelectionIndex = _allItems.FindIndex(a => 
+                    0 == string.Compare(a.DisplayName, previousSelection, StringComparison.InvariantCultureIgnoreCase));
+                if (actualPreviousSelectionIndex >= 0)
+                {
+                    var pageSize = _rectangle.Height;
+                    if (actualPreviousSelectionIndex >= previousWindow.FirstDisplayed && actualPreviousSelectionIndex < previousWindow.FirstDisplayed + pageSize)
+                    {
+                        _state.SetSelection(previousWindow.FirstDisplayed, actualPreviousSelectionIndex);
+                    }
+                    else
+                    {
+                        //TODO: verify if it is going to always work as expected
+                        _state.SetSelection(actualPreviousSelectionIndex, actualPreviousSelectionIndex);
+                    }
+                }
+            }
+
+            RedrawConsole();
+            return ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
+        }
     }
 
     private static string CleanFilter(string? filter) => string.IsNullOrWhiteSpace(filter) ? string.Empty : Regex.Replace(filter, @"\s+", " ");

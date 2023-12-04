@@ -4,7 +4,7 @@
   - read cache from file
   - write cache to file (KISS: on exit only, async job will be provided in the future)
   - display "cached at" (KISS: no age required yet!)
-  - statistics (KISS: updated after every read)
+  - statistics (KISS: updated after every read and cached only)
   - refresh on current level
 - clipboard
   - is it possible to get clipboard and compare?
@@ -27,6 +27,7 @@
 
 # SHOULD
 
+- consider deconstruction instead of OneOf dependency
 - corner cases handled (string too long)
 - code cleanup
 - provide CHANGELOG.md, versioning and tags as good projects do
