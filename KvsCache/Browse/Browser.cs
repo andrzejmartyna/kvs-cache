@@ -34,7 +34,7 @@ public class Browser
         _itemsName = itemsName;
     }
 
-    public void Browse(Func<bool, IEnumerable<BrowserItem>> getItemsFunction, BrowserItem? parentItem, Action<DateTime?> drawStatistics)
+    public void Browse(Func<bool, DataChunk> getItemsFunction, BrowserItem parentItem, Action<DateTime?> drawStatistics)
     {
         _context.Console.PushSnapshot();
 
@@ -163,18 +163,13 @@ public class Browser
         }
 
         _context.Console.PopSnapshot();
-        DrawStatistics();
         return;
 
-        void DrawStatistics()
-        {
-            drawStatistics(_state?.Selected.Self is DataChunk chunk ? chunk.CachedAt : null);
-        }
-        
         ConsoleKeyInfo ReloadItems(bool forceRefresh)
         {
-            var items = getItemsFunction(forceRefresh);
-
+            var chunk = getItemsFunction(forceRefresh);
+            var items = BrowserItem.PackForBrowsing(chunk, parentItem);
+            
             var previousWindow = _state?.Selection;
             var previousSelection = _state?.Selected.DisplayName;
             
@@ -213,7 +208,7 @@ public class Browser
             }
 
             RedrawConsole();
-            DrawStatistics();
+            drawStatistics((_parent?.Self as DataChunk)?.CachedAt);
             return ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
         }
     }

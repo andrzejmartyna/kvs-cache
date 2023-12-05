@@ -12,6 +12,8 @@ public class Harvester
 
     private readonly KeyVaultSecretsCache _cache = new();
 
+    public Subscriptions Subscriptions => _cache.Subscriptions;
+
     //TODO: Remove dependency of Harvester on UI
     private readonly ConsoleUi _console;
     private readonly BrowseGeometry _geometry;

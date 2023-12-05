@@ -4,6 +4,7 @@ using KvsCache.ConsoleDraw;
 using KvsCache.Harvest;
 using KvsCache.Models.Azure;
 using KvsCache.Models.Geometry;
+using KvsCache.Utils;
 using Newtonsoft.Json;
 using TextCopy;
 
@@ -56,7 +57,8 @@ public class Controller
         var browsingTcs = new TaskCompletionSource<bool>();
         var browsingTask = Task.Run(() =>
         {
-            browsingContext[0].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(forceRefresh), null), null, DrawStatistics);
+            var parent = new BrowserItem(BrowserItemType.Fetched, _harvester.Subscriptions, null, string.Empty);
+            browsingContext[0].Browse((forceRefresh) => _harvester.GetSubscriptions(forceRefresh), parent, DrawStatistics);
             browsingTcs.SetResult(true);
         }, browsingContext.CancellationToken);
 
@@ -76,7 +78,7 @@ public class Controller
 
         if (selected.Self is Subscription subscription)
         {
-            context[1].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription, forceRefresh), selected), selected, DrawStatistics);
+            context[1].Browse((forceRefresh) => _harvester.GetKeyVaults(subscription, forceRefresh), selected, DrawStatistics);
         }
 
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
@@ -89,7 +91,7 @@ public class Controller
 
         if (selected.Self is KeyVault kv)
         {
-            context[2].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv, forceRefresh), selected), selected, DrawStatistics);
+            context[2].Browse((forceRefresh) => _harvester.GetSecrets(kv, forceRefresh), selected, DrawStatistics);
         }
         
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
@@ -190,6 +192,14 @@ public class Controller
         _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc");
         const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
         _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
+
+        var cacheInfo = _geometry.RefreshedRectangle;
+        _console.FillRectangle(cacheInfo, ' ');
+        if (cachedAt != null)
+        {
+            var cachedAtString = DateTimeFormat.FormatTimeAgo(cachedAt.Value, "Cached");
+            _console.WriteAt(cacheInfo.Right - cachedAtString.Length + 1, cacheInfo.Top, cachedAtString);
+        }
     }
 
     private void OnExit()

@@ -3,14 +3,12 @@
 - align functionality to 1.0
   - read cache from file
   - write cache to file (KISS: on exit only, async job will be provided in the future)
+  - display "cached at" (KISS: no age required yet!)
 
 # MUST 2.0
 
 - align functionality to 1.0
-  - display "cached at" (KISS: no age required yet!)
   - keep previous cache of Items after local refresh 
-- fix issues "Index out of range"
-  - after refresh when filter is applied
 
 # MUST 2.1
 
