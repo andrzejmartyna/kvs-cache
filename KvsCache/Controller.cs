@@ -5,6 +5,7 @@ using KvsCache.Harvest;
 using KvsCache.Models.Azure;
 using KvsCache.Models.Geometry;
 using Newtonsoft.Json;
+using TextCopy;
 
 namespace KvsCache;
 
@@ -120,7 +121,7 @@ public class Controller
                 new SubscriptionInfo(subscription?.Id, subscription?.Name),
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
                 new SecretInfo(secret.Name));
-            Clipboard.SetText(JsonConvert.SerializeObject(secretInfo, Formatting.Indented));
+            ClipboardService.SetText(JsonConvert.SerializeObject(secretInfo, Formatting.Indented));
             _console.Message("The clipboard was filled with full information about the secret.", _console.GreenMessage);
             return;
         }
@@ -129,7 +130,7 @@ public class Controller
         secretValueOrError.Switch(
             str =>
             {
-                Clipboard.SetText(str);
+                ClipboardService.SetText(str);
                 _console.Message("Value of the secret was copied to the clipboard.", _console.GreenMessage);
             },
             err => _console.Message($"There was an error getting the secret value.\r\n{err.Message}", _console.RedMessage)
