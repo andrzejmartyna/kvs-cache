@@ -1,11 +1,3 @@
-# DONE 2.0
-
-- align functionality to 1.0
-  - read cache from file
-  - write cache to file (KISS: on exit only, async job will be provided in the future)
-  - display "cached at" (KISS: no age required yet!)
-  - keep previous cache of Items after local refresh
-
 # MUST 2.1
 
 - handle Azure exceptions gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))

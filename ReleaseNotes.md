@@ -2,6 +2,22 @@
 
 A rough plan for future versions is here: [TODO.md](TODO.md)
 
+# 2.0
+
+1. Important change in caching
+   - reading all subscriptions / key vaults / secrets at once was withdrawn as it took long minutes for big sets of items and slow network
+   - instead cached is only the contents that a user visits
+   - reload (Ctrl-R) is only done on the current level instead of clearing and rereading the whole cache
+   - it means also that statistics displays numbers of items cached instead of all items 
+1. Usage of open source third-party libraries
+   - OneOf
+   - TextCopy
+   - see [LICENSES.md](LICENSES/LICENCES.md) for details
+1. Code cleanup
+
+_The version 2.0 was finished at 2023-12-xxx._  
+_Working hours spent: xx._
+
 # 1.0
 
 This initial version of the tool:

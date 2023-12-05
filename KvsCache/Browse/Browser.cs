@@ -43,7 +43,7 @@ public class Browser
         {
             if (_state == null) return;
             
-            if (key.Key is ConsoleKey.Escape || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
+            if (key.Key is ConsoleKey.Escape && string.IsNullOrEmpty(_state.Filter) || (_exitOnLeft &&  key.Key is ConsoleKey.LeftArrow))
             {
                 break;
             }
@@ -144,6 +144,9 @@ public class Browser
                         _state.SetSelection(_state.Selection.FirstDisplayed - pageSize, _state.Selection.Selected - pageSize);
                         RedrawConsole();
                     }
+                    break;
+                case ConsoleKey.Escape:
+                    ApplyFilter(null);
                     break;
                 case ConsoleKey.Backspace:
                     if (!string.IsNullOrEmpty(_state.Filter))
