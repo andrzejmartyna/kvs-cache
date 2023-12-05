@@ -5,10 +5,6 @@
   - write cache to file (KISS: on exit only, async job will be provided in the future)
   - display "cached at" (KISS: no age required yet!)
   - keep previous cache of Items after local refresh 
-- clipboard
-  - is it possible to get clipboard and compare?
-  - fix clipboard issues
-    - https://stackoverflow.com/questions/44205260/net-core-copy-to-clipboard
 
 # MUST 2.1
 

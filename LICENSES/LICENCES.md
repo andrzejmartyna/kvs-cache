@@ -10,3 +10,4 @@ Thank you to all authors and contributors for your great work!
   - Source code: [https://github.com/CopyText/TextCopy](https://github.com/CopyText/TextCopy)
   - Source license: [https://github.com/CopyText/TextCopy/blob/main/license.txt](https://github.com/CopyText/TextCopy/blob/main/license.txt)
   - Copy of the MIT license downloaded on 2023-12-05: [TextCopy/license.txt](TextCopy/license.txt)
+  - Found On SO: [https://stackoverflow.com/a/51912933/669692](https://stackoverflow.com/a/51912933/669692)
