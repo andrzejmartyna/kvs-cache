@@ -4,8 +4,7 @@
   - read cache from file
   - write cache to file (KISS: on exit only, async job will be provided in the future)
   - display "cached at" (KISS: no age required yet!)
-  - statistics (KISS: updated after every read and cached only)
-  - refresh on current level
+  - keep previous cache of Items after local refresh 
 - clipboard
   - is it possible to get clipboard and compare?
   - fix clipboard issues

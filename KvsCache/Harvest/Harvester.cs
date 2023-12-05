@@ -23,10 +23,10 @@ public class Harvester
         _console = console;
         _geometry = geometry;
     }
-    
-    public string SubscriptionCount => "?"; //TODO: Subscriptions.Count.ToString();
-    public string KeyVaultCount => "?"; //TODO: Subscriptions.Sum(s => s.KeyVaults.Count);
-    public string SecretCount => "?"; //TODO: Subscriptions.Sum(s => s.KeyVaults.Sum(kv => kv.Secrets.Count));
+
+    public string SubscriptionCount => _cache.Items?.Count.ToString() ?? "?";
+    public string KeyVaultCount => _cache.Items?.Sum(s => ((Subscription)s).Items?.Count ?? 0).ToString() ?? "?";
+    public string SecretCount => _cache.Items?.Sum(s => ((Subscription)s).Items?.Sum(kv => ((KeyVault)kv).Items?.Count ?? 0)).ToString() ?? "?";
 
     public DataChunk GetSubscriptions(bool forceRefresh)
         => GetCachedOrReadDataChunk(_cache, () => _keyVaultSecretsRepository.GetSubscriptions(), forceRefresh);

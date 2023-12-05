@@ -2,9 +2,9 @@ using KvsCache.Models.Azure;
 
 namespace KvsCache.Browse;
 
-public record BrowserItem(BrowserItemType ItemType, dynamic? Self, BrowserItem? Parent, string ErrorMessage)
+public record BrowserItem(BrowserItemType ItemType, DataItem? Self, BrowserItem? Parent, string ErrorMessage)
 {
-    public string DisplayName => Self != null ? Self.Name : ErrorMessage;
+    public string DisplayName => Self?.DisplayName ?? ErrorMessage;
 
     public static IEnumerable<BrowserItem> PackForBrowsing(DataChunk dataChunk, BrowserItem? parent)
     {

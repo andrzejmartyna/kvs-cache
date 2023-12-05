@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using KvsCache.ConsoleDraw;
+using KvsCache.Models.Azure;
 using KvsCache.Models.Geometry;
 
 namespace KvsCache.Browse;
@@ -33,7 +34,7 @@ public class Browser
         _itemsName = itemsName;
     }
 
-    public void Browse(Func<bool, IEnumerable<BrowserItem>> getItemsFunction, BrowserItem? parentItem)
+    public void Browse(Func<bool, IEnumerable<BrowserItem>> getItemsFunction, BrowserItem? parentItem, Action<DateTime?> drawStatistics)
     {
         _context.Console.PushSnapshot();
 
@@ -162,8 +163,14 @@ public class Browser
         }
 
         _context.Console.PopSnapshot();
+        DrawStatistics();
         return;
 
+        void DrawStatistics()
+        {
+            drawStatistics(_state?.Selected.Self is DataChunk chunk ? chunk.CachedAt : null);
+        }
+        
         ConsoleKeyInfo ReloadItems(bool forceRefresh)
         {
             var items = getItemsFunction(forceRefresh);
@@ -206,6 +213,7 @@ public class Browser
             }
 
             RedrawConsole();
+            DrawStatistics();
             return ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
         }
     }

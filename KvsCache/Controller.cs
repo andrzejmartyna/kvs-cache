@@ -55,7 +55,7 @@ public class Controller
         var browsingTcs = new TaskCompletionSource<bool>();
         var browsingTask = Task.Run(() =>
         {
-            browsingContext[0].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(forceRefresh), null), null);
+            browsingContext[0].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSubscriptions(forceRefresh), null), null, DrawStatistics);
             browsingTcs.SetResult(true);
         }, browsingContext.CancellationToken);
 
@@ -75,7 +75,7 @@ public class Controller
 
         if (selected.Self is Subscription subscription)
         {
-            context[1].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription, forceRefresh), selected), selected);
+            context[1].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetKeyVaults(subscription, forceRefresh), selected), selected, DrawStatistics);
         }
 
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
@@ -88,7 +88,7 @@ public class Controller
 
         if (selected.Self is KeyVault kv)
         {
-            context[2].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv, forceRefresh), selected), selected);
+            context[2].Browse((forceRefresh) => BrowserItem.PackForBrowsing(_harvester.GetSecrets(kv, forceRefresh), selected), selected, DrawStatistics);
         }
         
         _console.WriteAt(selection.Left, selection.Top + 1, new string(' ', selection.Width));
@@ -106,9 +106,8 @@ public class Controller
     
     private void InfoOrReadSecretValue(BrowserItem selected, bool info)
     {
-        var keyVault = (KeyVault?)selected.Parent?.Self?.Items?.FirstOrDefault()?.Self;
-        var secret = (Secret?)selected.Self?.Children?.FirstOrDefault()?.Self;
-        if (keyVault == null || secret == null)
+        var secret = selected.Self as Secret;
+        if (secret == null || selected.Parent?.Self is not KeyVault keyVault)
         {
             _console.Message($"Internal error - no KeyVault found for the {secret?.Name} secret", _console.RedMessage);
             return;
@@ -116,7 +115,7 @@ public class Controller
 
         if (info)
         {
-            var subscription = (Subscription?)selected.Parent?.Parent?.Self?.Children?.FirstOrDefault()?.Self;
+            var subscription = selected.Parent?.Parent?.Self as Subscription;
             var secretInfo = new SecretFullInfo(
                 new SubscriptionInfo(subscription?.Id, subscription?.Name),
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
@@ -178,12 +177,13 @@ public class Controller
         _console.WriteAt(versionInfo.Right - version.Length + 1, versionInfo.Top, version);
     }
 
-    private void DrawStatistics()
+    private void DrawStatistics(DateTime? cachedAt = null)
     {
         var info = _geometry.SummaryRectangle;
-        _console.WriteAt(info.Left, info.Top + 0, $"Subscriptions: {_harvester.SubscriptionCount}");
-        _console.WriteAt(info.Left, info.Top + 1, $"   Key vaults: {_harvester.KeyVaultCount}");
-        _console.WriteAt(info.Left, info.Top + 2, $"      Secrets: {_harvester.SecretCount}");
+        _console.FillRectangle(info, ' ');
+        _console.WriteAt(info.Left, info.Top + 0, $" Subscriptions: {_harvester.SubscriptionCount}");
+        _console.WriteAt(info.Left, info.Top + 1, $"    KVs cached: {_harvester.KeyVaultCount}");
+        _console.WriteAt(info.Left, info.Top + 2, $"Secrets cached: {_harvester.SecretCount}");
 
         var tips = _geometry.TipsRectangle;
         _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc");
