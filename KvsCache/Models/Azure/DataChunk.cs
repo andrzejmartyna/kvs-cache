@@ -32,4 +32,12 @@ public abstract class DataChunk : DataItem
         Items = list;
         return this;
     }
+
+    public void SetTo(DataChunk cloneFrom)
+    {
+        CachedAt = cloneFrom.CachedAt;
+        ErroredAt = cloneFrom.ErroredAt;
+        LastOperationError = cloneFrom.LastOperationError;
+        Items = cloneFrom.Items;
+    }
 }

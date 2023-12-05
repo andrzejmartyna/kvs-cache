@@ -4,11 +4,7 @@
   - read cache from file
   - write cache to file (KISS: on exit only, async job will be provided in the future)
   - display "cached at" (KISS: no age required yet!)
-
-# MUST 2.0
-
-- align functionality to 1.0
-  - keep previous cache of Items after local refresh 
+  - keep previous cache of Items after local refresh
 
 # MUST 2.1
 

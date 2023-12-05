@@ -165,6 +165,29 @@ public class Browser
         _context.Console.PopSnapshot();
         return;
 
+        void AssignWithChildCachesPreserved(List<BrowserItem> items)
+        {
+            var savedChildCaches = new Dictionary<string, DataChunk>();
+            foreach (var currentItem in _allItems)
+            {
+                if (currentItem.Self is DataChunk chunk)
+                {
+                    savedChildCaches[currentItem.DisplayName] = chunk;
+                }
+            }
+            
+            _allItems = items.ToList();
+
+            foreach (var savedItem in savedChildCaches)
+            {
+                var currentItem = _allItems.Find(a => 0 == string.Compare(a.DisplayName, savedItem.Key, StringComparison.InvariantCultureIgnoreCase));
+                if (currentItem?.Self is DataChunk chunk)
+                {
+                    chunk.SetTo(savedItem.Value);
+                }
+            }
+        }
+        
         ConsoleKeyInfo ReloadItems(bool forceRefresh)
         {
             var chunk = getItemsFunction(forceRefresh);
@@ -174,7 +197,8 @@ public class Browser
             var previousSelection = _state?.Selected.DisplayName;
             
             _parent = parentItem;
-            _allItems = items.ToList();
+
+            AssignWithChildCachesPreserved(items.ToList());
 
             if (_state == null)
             {
@@ -212,7 +236,7 @@ public class Browser
             return ConsoleUi.ReadKeyNonBlocking(true, _context.CancellationToken);
         }
     }
-
+    
     private static string CleanFilter(string? filter) => string.IsNullOrWhiteSpace(filter) ? string.Empty : Regex.Replace(filter, @"\s+", " ");
     
     private static string[] SplitFilter(string filter) => CleanFilter(filter).Split(' ', StringSplitOptions.RemoveEmptyEntries);
