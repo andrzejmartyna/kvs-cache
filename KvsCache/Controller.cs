@@ -199,5 +199,7 @@ public class Controller
         Console.WriteLine("Thank you for using kvs-cache!");
         Console.WriteLine();
         Console.CursorVisible = true;
+        
+        _harvester.WriteCache();
     }
 }

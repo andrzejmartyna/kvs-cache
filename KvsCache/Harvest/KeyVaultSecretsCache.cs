@@ -1,5 +1,6 @@
 using KvsCache.Models.Azure;
 using KvsCache.Models.Errors;
+using Newtonsoft.Json;
 
 namespace KvsCache.Harvest;
 
@@ -7,32 +8,41 @@ public class KeyVaultSecretsCache
 {
     public string SchemaVersion { get; init; } = "2.0";
     
-    public DateTime CachedAt { get; private init; }
-    public List<Subscription> Subscriptions { get; private init; } = new();
+    public Subscriptions Subscriptions { get; private init; } = new();
 
-    public static OneOrError<KeyVaultSecretsCache> ReadFromAzure(string filePath, KeyVaultSecretsRepository keyVaultSecretsRepository)
+    public static OneOrError<KeyVaultSecretsCache> ReadFromFile(string filePath)
     {
-        var subscriptionsOrError = keyVaultSecretsRepository.GetSubscriptions();
-        if (subscriptionsOrError.TryPickT1(out var error, out var list))
+        try
         {
-            return error;
+            if (File.Exists(filePath))
+            {
+                var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+                var deserialized = JsonConvert.DeserializeObject<KeyVaultSecretsCache>(File.ReadAllText(filePath), settings);
+                if (deserialized != null)
+                {
+                    return deserialized;
+                }
+                return new ErrorNotFound($"Data in {filePath}");
+            }
+            return new ErrorNotFound($"File {filePath}");
         }
-        var cache = new KeyVaultSecretsCache
+        catch (Exception e)
         {
-            Subscriptions = list,
-            CachedAt = DateTime.Now
-        };
-        cache.WriteCacheToFile(filePath);
-        return cache;
+            return new ErrorInfo(e.Message);
+        }
     }
-    
-    public static KeyVaultSecretsCache? ReadFromFile(string filePath)
-        //TODO: provide proper serialization
-        => null;//File.Exists(filePath) ? JsonConvert.DeserializeObject<KeyVaultSecretsCache>(File.ReadAllText(filePath)) : null;
-    
-    private void WriteCacheToFile(string filePath)
+
+    public OneOrError<bool> WriteCacheToFile(string filePath)
     {
-        //TODO: write it again
-        //File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+        try
+        {
+            var settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+            File.WriteAllText(filePath, JsonConvert.SerializeObject(this, Formatting.Indented, settings));
+            return true;
+        }
+        catch (Exception e)
+        {
+            return new ErrorInfo(e.Message);
+        }
     }
 }

@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace KvsCache.Models.Azure;
 
 public class Secret : DataItem
@@ -8,8 +10,11 @@ public class Secret : DataItem
         Name = name;
     }
 
-    public string Id { get; }
-    public string Name { get; }
+    [JsonProperty]
+    public string Id { get; private set;  }
+
+    [JsonProperty]
+    public string Name { get; private set; }
 
     public override string DisplayName => Name;
 }

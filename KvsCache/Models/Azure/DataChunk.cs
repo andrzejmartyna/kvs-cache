@@ -1,16 +1,20 @@
 using KvsCache.Models.Errors;
+using Newtonsoft.Json;
 
 namespace KvsCache.Models.Azure;
 
 public abstract class DataChunk : DataItem
 {
-    public bool ItemsAvailable { get; private set; }
-
+    [JsonProperty]
     public DateTime CachedAt { get; private set; }
 
+    [JsonProperty]
     public DateTime ErroredAt { get; private set; }
+    
+    [JsonProperty]
     public ErrorInfo? LastOperationError { get; private set; } = new NotLoadedYet();
 
+    [JsonProperty]
     public List<DataItem>? Items { get; private set; }
 
     public DataChunk SetErrorState(ErrorInfo error)
@@ -22,7 +26,6 @@ public abstract class DataChunk : DataItem
     
     public DataChunk SetCachedState(List<DataItem> list)
     {
-        ItemsAvailable = true;
         CachedAt = DateTime.Now;
         ErroredAt = default;
         LastOperationError = null;

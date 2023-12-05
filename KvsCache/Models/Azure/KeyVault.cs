@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace KvsCache.Models.Azure;
 
 public class KeyVault : DataChunk
@@ -9,9 +11,14 @@ public class KeyVault : DataChunk
         Url = url;
     }
 
-    public string? Id { get; }
-    public string Name { get; }
-    public string Url { get; }
+    [JsonProperty]
+    public string? Id { get; private set;  }
+
+    [JsonProperty]
+    public string Name { get; private set; }
+    
+    [JsonProperty]
+    public string Url { get; private set; }
 
     public override string DisplayName => Name;
 }

@@ -8,16 +8,16 @@ public record BrowserItem(BrowserItemType ItemType, DataItem? Self, BrowserItem?
 
     public static IEnumerable<BrowserItem> PackForBrowsing(DataChunk dataChunk, BrowserItem? parent)
     {
-        if (dataChunk is { ItemsAvailable: true, Items: not null })
+        if (dataChunk.Items == null)
+        {
+            yield return new BrowserItem(BrowserItemType.Error, null, parent, dataChunk.LastOperationError?.Message ?? "Unknown error");
+        }
+        else
         {
             foreach (var item in dataChunk.Items)
             {
                 yield return new BrowserItem(BrowserItemType.Fetched, item, parent, string.Empty);
             }
-        }
-        else
-        {
-            yield return new BrowserItem(BrowserItemType.Error, null, parent, dataChunk.LastOperationError?.Message ?? "Unknown error");
         }
     }
 }

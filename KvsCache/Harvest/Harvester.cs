@@ -7,10 +7,10 @@ namespace KvsCache.Harvest;
 
 public class Harvester
 {
-    //TODO: private readonly string _cacheFile = "kvs-cache.json";
+    private readonly string _cacheFile = "kvs-cache.json";
     private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
 
-    private readonly Subscriptions _cache = new();
+    private readonly KeyVaultSecretsCache _cache = new();
 
     //TODO: Remove dependency of Harvester on UI
     private readonly ConsoleUi _console;
@@ -22,14 +22,25 @@ public class Harvester
     {
         _console = console;
         _geometry = geometry;
+        
+        var tryRead = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
+        if (tryRead.TryPickT0(out var cache, out var _))
+        {
+            _cache = cache;
+        }
     }
 
-    public string SubscriptionCount => _cache.Items?.Count.ToString() ?? "?";
-    public string KeyVaultCount => _cache.Items?.Sum(s => ((Subscription)s).Items?.Count ?? 0).ToString() ?? "?";
-    public string SecretCount => _cache.Items?.Sum(s => ((Subscription)s).Items?.Sum(kv => ((KeyVault)kv).Items?.Count ?? 0)).ToString() ?? "?";
+    public void WriteCache()
+    {
+        _cache.WriteCacheToFile(_cacheFile);
+    }
+
+    public string SubscriptionCount => _cache.Subscriptions.Items?.Count.ToString() ?? "?";
+    public string KeyVaultCount => _cache.Subscriptions.Items?.Sum(s => ((Subscription)s).Items?.Count ?? 0).ToString() ?? "?";
+    public string SecretCount => _cache.Subscriptions.Items?.Sum(s => ((Subscription)s).Items?.Sum(kv => ((KeyVault)kv).Items?.Count ?? 0)).ToString() ?? "?";
 
     public DataChunk GetSubscriptions(bool forceRefresh)
-        => GetCachedOrReadDataChunk(_cache, () => _keyVaultSecretsRepository.GetSubscriptions(), forceRefresh);
+        => GetCachedOrReadDataChunk(_cache.Subscriptions, () => _keyVaultSecretsRepository.GetSubscriptions(), forceRefresh);
 
     public DataChunk GetKeyVaults(Subscription subscription, bool forceRefresh)
         => GetCachedOrReadDataChunk(subscription, () => _keyVaultSecretsRepository.GetKeyVaults(subscription.Name), forceRefresh);

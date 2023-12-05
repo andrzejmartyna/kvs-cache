@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace KvsCache.Models.Azure;
 
 public class Subscription : DataChunk
@@ -9,9 +11,14 @@ public class Subscription : DataChunk
         TenantId = tenantId;
     }
 
-    public string? Id { get; }
-    public string Name { get; }
-    public string? TenantId { get; }
+    [JsonProperty]
+    public string? Id { get; private set; }
+
+    [JsonProperty]
+    public string Name { get; private set; }
+
+    [JsonProperty]
+    public string? TenantId { get; private set; }
 
     public override string DisplayName => Name;
 }

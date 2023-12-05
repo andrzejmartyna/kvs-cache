@@ -24,7 +24,8 @@ I plan to introduce lazy loading in next version but before that I disabled auto
 1. Check if you have .NET 7: `dotnet --version`, if not, **install .NET 7 SDK first**
 1. Go to the repo folder in the command line / shell window
 1. Login to Azure `az login`
-2. Go down one more folder `cd kvs-cache`
+1. Go down one more folder `cd kvs-cache`
+1. Restore packages using `dotnet restore` 
 1. Run kvs-cache using `dotnet run`
 
 # General functionalities
