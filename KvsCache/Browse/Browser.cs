@@ -184,18 +184,18 @@ public class Browser
             if (_state == null)
             {
                 _state = new BrowseState(_allItems, _parent, string.Empty);
-                ApplyFilter(_state.Filter);
             }
             else
             {
                 _state.ResetItems(_allItems, parentItem);
                 _filteredStates = new Dictionary<string, BrowseState>();
-                ApplyFilter(_state.Filter);
             }
+            
+            ApplyFilter(_state.Filter);
 
             if (previousSelection != null && previousWindow != null)
             {
-                var actualPreviousSelectionIndex = _allItems.FindIndex(a => 
+                var actualPreviousSelectionIndex = _state.Items.FindIndex(a => 
                     0 == string.Compare(a.DisplayName, previousSelection, StringComparison.InvariantCultureIgnoreCase));
                 if (actualPreviousSelectionIndex >= 0)
                 {
