@@ -8,11 +8,11 @@ public record BrowserItem(BrowserItemType ItemType, DataItem? Self, BrowserItem?
 
     public static IEnumerable<BrowserItem> PackForBrowsing(DataChunk dataChunk, BrowserItem? parent)
     {
-        if (dataChunk.Items == null)
+        if (dataChunk.Items == null || dataChunk.LastOperationError != null)
         {
             yield return new BrowserItem(BrowserItemType.Error, dataChunk.LastOperationError, parent);
         }
-        else
+        if (dataChunk.Items != null)
         {
             foreach (var item in dataChunk.Items)
             {

@@ -16,6 +16,7 @@
   - Generate command to get/set value using scripts like Powershell, bash
   - or instead of everything above - open browser with the proper url - let the user do anything there
 - ready to use distribution (1.0 requires .NET SDK and building)
+- Ctrl-R hangs sometimes
 
 # SHOULD
 

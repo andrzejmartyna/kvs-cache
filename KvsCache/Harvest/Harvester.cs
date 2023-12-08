@@ -24,12 +24,7 @@ public class Harvester
     {
         _console = console;
         _geometry = geometry;
-        
-        var tryRead = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
-        if (tryRead.TryPickT0(out var cache, out var _))
-        {
-            _cache = cache;
-        }
+        _cache = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
     }
 
     public void WriteCache()

@@ -1,3 +1,5 @@
+using KvsCache.Models.Errors;
+
 namespace KvsCache.Browse;
 
 public class BrowseState
@@ -26,9 +28,15 @@ public class BrowseState
 
     public void ResetItems(IEnumerable<BrowserItem> items, BrowserItem? parentItem)
     {
-        var itemSorted = new SortedDictionary<string, BrowserItem>(items.ToDictionary(a => a.DisplayName, a => a));
+        var itemsList = items.ToList();
+        var errors = itemsList.Where(a => a.Self is ErrorInfo);
+        var itemSorted = new SortedDictionary<string, BrowserItem>(itemsList.Where(a => a.Self is not ErrorInfo).ToDictionary(b => b.DisplayName, b => b));
 
         Items = new List<BrowserItem>();
+        foreach (var error in errors)
+        {
+            Items.Add(new BrowserItem(BrowserItemType.Fetched, error.Self, parentItem));
+        }
         foreach (var item in itemSorted)
         {
             Items.Add(new BrowserItem(BrowserItemType.Fetched, item.Value.Self, parentItem));
