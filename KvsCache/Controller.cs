@@ -3,6 +3,7 @@ using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
 using KvsCache.Harvest;
 using KvsCache.Models.Azure;
+using KvsCache.Models.Errors;
 using KvsCache.Models.Geometry;
 using KvsCache.Utils;
 using Newtonsoft.Json;
@@ -73,6 +74,11 @@ public class Controller
 
     private void BrowseKeyVaults(BrowserItem selected, BrowseContext context)
     {
+        if (WasError(selected))
+        {
+            return;
+        }
+        
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top, selected.DisplayName);
 
@@ -84,8 +90,23 @@ public class Controller
         _console.WriteAt(selection.Left, selection.Top, new string(' ', selection.Width));
     }
 
+    private bool WasError(BrowserItem selected)
+    {
+        if (selected.Self is ErrorInfo err)
+        {
+            _console.Message("There was an error", err.Message, _console.RedMessage);
+            return true;
+        }
+        return false;
+    }
+
     private void BrowseSecrets(BrowserItem selected, BrowseContext context)
     {
+        if (WasError(selected))
+        {
+            return;
+        }
+        
         var selection = _geometry.SelectionRectangle;
         _console.WriteAt(selection.Left, selection.Top + 1, selected.DisplayName);
 
@@ -109,10 +130,15 @@ public class Controller
     
     private void InfoOrReadSecretValue(BrowserItem selected, bool info)
     {
+        if (WasError(selected))
+        {
+            return;
+        }
+        
         var secret = selected.Self as Secret;
         if (secret == null || selected.Parent?.Self is not KeyVault keyVault)
         {
-            _console.Message($"Internal error - no KeyVault found for the {secret?.Name} secret", _console.RedMessage);
+            _console.Message("Internal error", $"No KeyVault found for the {secret?.Name} secret", _console.RedMessage);
             return;
         }
 
@@ -124,7 +150,7 @@ public class Controller
                 new KeyVaultInfo(keyVault.Name, keyVault.Url),
                 new SecretInfo(secret.Name));
             ClipboardService.SetText(JsonConvert.SerializeObject(secretInfo, Formatting.Indented));
-            _console.Message("The clipboard was filled with full information about the secret.", _console.GreenMessage);
+            _console.Message("Secret value", "The clipboard was filled with full information about the secret.", _console.GreenMessage);
             return;
         }
         
@@ -133,9 +159,9 @@ public class Controller
             str =>
             {
                 ClipboardService.SetText(str);
-                _console.Message("Value of the secret was copied to the clipboard.", _console.GreenMessage);
+                _console.Message("Secret value", "Value of the secret was copied to the clipboard.", _console.GreenMessage);
             },
-            err => _console.Message($"There was an error getting the secret value.\r\n{err.Message}", _console.RedMessage)
+            err => _console.Message("Error getting secret value", err.Message, _console.RedMessage)
         );
     }
 
@@ -197,7 +223,7 @@ public class Controller
         _console.FillRectangle(cacheInfo, ' ');
         if (cachedAt != null)
         {
-            var cachedAtString = DateTimeFormat.FormatTimeAgo(cachedAt.Value, "Cached");
+            var cachedAtString = DateTimeFormat.FormatTimeAgo(cachedAt.Value);
             _console.WriteAt(cacheInfo.Right - cachedAtString.Length + 1, cacheInfo.Top, cachedAtString);
         }
     }

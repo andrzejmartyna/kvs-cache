@@ -10,7 +10,7 @@ public static class CachePolicies
 
         // automatic refresh must be asynchronous not to block end user by surprise!!!
         // TODO: if you have asynchronous refresh implemented you can uncomment code below
-        return true;
+        return chunk.CachedAt > DateTime.MinValue;
         
         // var span = new TimeSpan(1, 0, 0, 0);
         // switch (chunk)

@@ -1,5 +1,6 @@
 using KvsCache.Browse;
 using KvsCache.Models.Geometry;
+using TextCopy;
 
 namespace KvsCache.ConsoleDraw;
 
@@ -79,21 +80,46 @@ public class ConsoleUi
         _uiBuffer.Redraw();
     }
 
-    public void DisplayBoxedText(string message, ConsoleColors colors)
+    private void DisplayBoxedText(string title, string message, ConsoleColors colors)
     {
         SetColors(colors);
-        //TODO: implement method "center"
-        var x = Geometry.Full.Left + (Geometry.Full.Width - message.Length) / 2;
-        var y = Geometry.Full.Top + Geometry.Full.Height / 2;
-        WriteAt(x, y, message);
-        DrawDoubleRectangle(x - 1, y - 1, x + message.Length, y + 1);
+
+        var lines = message.Trim().Split(Environment.NewLine);
+        var longestLine = lines.Max(a => a.Length);
+
+        var width = Math.Min(Geometry.Full.Width, longestLine + 2);
+        var height = Math.Min(Geometry.Full.Height, lines.Length + 2);
+        var x = Geometry.Full.Left + (Geometry.Full.Width - width) / 2;
+        var y = Geometry.Full.Top + (Geometry.Full.Height - height) / 2;
+
+        DrawDoubleRectangle(x, y, x + width - 1, y + height - 1);
+        
+        var titleX = Geometry.Full.Left + Math.Max(1, (Geometry.Full.Width - title.Length) / 2);
+        WriteAt(titleX, y, title[..Math.Min(title.Length, Geometry.Full.Width - 2)]);
+        
+        var anyTruncation = title.Length > width - 2;
+        for (var lineIdx = 0; lineIdx < height - 2; ++lineIdx)
+        {
+            var line = lines[lineIdx];
+            anyTruncation = anyTruncation || line.Length > width - 2;
+            WriteAt(x + 1, y + lineIdx + 1, line[..Math.Min(line.Length, width - 2)]);
+        }
+        
+        if (anyTruncation)
+        {
+            var footer = "see clipboard for more ...";
+            var footerX = Geometry.Full.Left + Math.Max(1, (Geometry.Full.Width - footer.Length) / 2);
+            WriteAt(footerX, y + height - 1, footer[..Math.Min(footer.Length, Geometry.Full.Width - 2)]);
+            ClipboardService.SetText(title + Environment.NewLine + message);
+        }
+
         SetDefaultColors();
     }
 
-    public void Message(string message, ConsoleColors colors)
+    public void Message(string title, string message, ConsoleColors colors)
     {
         PushSnapshot();
-        DisplayBoxedText(message, colors);
+        DisplayBoxedText(title, message, colors);
         Console.ReadKey(true);
         PopSnapshot();
     }

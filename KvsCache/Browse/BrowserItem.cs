@@ -10,7 +10,7 @@ public record BrowserItem(BrowserItemType ItemType, DataItem? Self, BrowserItem?
     {
         if (dataChunk.Items == null)
         {
-            yield return new BrowserItem(BrowserItemType.Error, null, parent, dataChunk.LastOperationError?.Message ?? "Unknown error");
+            yield return new BrowserItem(BrowserItemType.Error, dataChunk.LastOperationError, parent, dataChunk.LastOperationError?.Message ?? "Unknown error");
         }
         else
         {

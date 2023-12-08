@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using KvsCache.ConsoleDraw;
 using KvsCache.Models.Azure;
+using KvsCache.Models.Errors;
 using KvsCache.Models.Geometry;
 
 namespace KvsCache.Browse;
