@@ -167,6 +167,7 @@ public class Browser
         }
 
         _context.Console.PopSnapshot();
+        drawStatistics((_parent?.Self as DataChunk)?.CachedAt);
         return;
 
         void AssignWithChildCachesPreserved(List<BrowserItem> items)
@@ -273,7 +274,9 @@ public class Browser
 
         var header = Geometry.SelectionHeaderLine;
         _context.Console.DrawHorizontalLine(header, false);
-        _context.Console.WriteAt(header.Left, header.Top, _state.Count <= 0 ? $"No {_itemsName} found" : $"{_itemsName} found:");
+        var nonErroredItems = _state.Items.Count(a => a.Self is not ErrorInfo);
+        var summaryMessage = nonErroredItems <= 0 ? $"No {_itemsName} found" : $"{_itemsName} found: {nonErroredItems}";
+        _context.Console.WriteAt(header.Left, header.Top, summaryMessage);
 
         if (!string.IsNullOrWhiteSpace(_state.Filter))
         {

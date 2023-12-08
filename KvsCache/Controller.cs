@@ -58,7 +58,7 @@ public class Controller
         var browsingTcs = new TaskCompletionSource<bool>();
         var browsingTask = Task.Run(() =>
         {
-            var parent = new BrowserItem(BrowserItemType.Fetched, _harvester.Subscriptions, null, string.Empty);
+            var parent = new BrowserItem(BrowserItemType.Fetched, _harvester.Subscriptions, null);
             browsingContext[0].Browse((forceRefresh) => _harvester.GetSubscriptions(forceRefresh), parent, DrawStatistics);
             browsingTcs.SetResult(true);
         }, browsingContext.CancellationToken);

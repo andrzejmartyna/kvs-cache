@@ -13,5 +13,5 @@ public class ErrorInfo : DataItem
         Message = message;
     }
 
-    public override string DisplayName => this.GetType().ToString();
-};
+    public override string DisplayName => "Error: " + (Message.Split(Environment.NewLine).FirstOrDefault() ?? "Unknown error");
+}

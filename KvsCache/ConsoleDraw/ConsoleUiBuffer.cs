@@ -68,15 +68,16 @@ public class ConsoleUiBuffer
 
     public void Write(string text)
     {
-        _textBuffer[_cursor.Y] = _textBuffer[_cursor.Y].Remove(_cursor.X, text.Length).Insert(_cursor.X, text);
-        for (var x = 0; x < text.Length; ++x)
+        var maxText = text.Substring(0, Math.Min(text.Length, _textBuffer[_cursor.Y].Length - _cursor.X));
+        _textBuffer[_cursor.Y] = _textBuffer[_cursor.Y].Remove(_cursor.X, maxText.Length).Insert(_cursor.X, maxText);
+        for (var x = 0; x < maxText.Length; ++x)
         {
             _colorsBuffer[_cursor.X + x, _cursor.Y] = _currentColor;
         }
 
-        Invalidate(_cursor, text.Length);
+        Invalidate(_cursor, maxText.Length);
 
-        _cursor.MoveRight(text.Length);
+        _cursor.MoveRight(maxText.Length);
     }
 
     private void Invalidate(Point cursor, int width)

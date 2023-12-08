@@ -1,7 +1,11 @@
-# MUST 2.1
+# DONE
 
 - handle Azure exceptions gracefully and inform the user (for example if she/he does not have permissions to List/Get secret(s))
 - secrets found (XXX):
+- Esc - first press should clean the filter
+
+# MUST 2.1
+
 - when a subscription or a key vault does not contain items display "(no items)"
 - when error happened while querying list of key vaults or secrets display "(error)" on an item containing the list
 - operation/context menu on secret/KV/subscription
@@ -12,7 +16,6 @@
   - Generate command to get/set value using scripts like Powershell, bash
   - or instead of everything above - open browser with the proper url - let the user do anything there
 - ready to use distribution (1.0 requires .NET SDK and building)
-- Esc - first press should clean the filter
 
 # SHOULD
 

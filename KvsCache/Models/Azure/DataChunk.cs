@@ -12,7 +12,7 @@ public abstract class DataChunk : DataItem
     public DateTime ErroredAt { get; private set; }
     
     [JsonProperty]
-    public ErrorInfo? LastOperationError { get; private set; } = new NotLoadedYet();
+    public ErrorInfo? LastOperationError { get; private set; }
 
     [JsonProperty]
     public List<DataItem>? Items { get; private set; }

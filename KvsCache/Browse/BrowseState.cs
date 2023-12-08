@@ -31,7 +31,7 @@ public class BrowseState
         Items = new List<BrowserItem>();
         foreach (var item in itemSorted)
         {
-            Items.Add(new BrowserItem(BrowserItemType.Fetched, item.Value.Self, parentItem, string.Empty));
+            Items.Add(new BrowserItem(BrowserItemType.Fetched, item.Value.Self, parentItem));
         }
     }
 }
