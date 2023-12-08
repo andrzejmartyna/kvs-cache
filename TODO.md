@@ -16,6 +16,7 @@
 
 # SHOULD
 
+- Issue: Ctrl-C does not work if a lengthy operation that queries Azure is under way
 - consider deconstruction instead of OneOf dependency
 - corner cases handled (string too long)
 - code cleanup
@@ -41,7 +42,8 @@
 - model tests
 - implement kvs-cache as an extension to VS Code
 - set an environment variable (as an alternative to clipboard)
+- search through all objects (I bet instant filtering is more than enough for kvs-cache)
 
 # WILL NOT
 
-- search through all objects (I bet instant filtering is more than enough for kvs-cache)
+- N/A
