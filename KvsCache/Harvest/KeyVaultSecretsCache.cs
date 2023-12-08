@@ -36,11 +36,13 @@ public class KeyVaultSecretsCache
         try
         {
             var backupNumber = 0;
-            var backupPath = $"{filePath}.backup{backupNumber:00}.json";
+            // TODO: strange thing - string interpolation ended sometimes with NullReferenceException
+            // this fails sometimes: $"{filePath}.backup{backupNumber:00}.json";
+            var backupPath = filePath + ".backup" + backupNumber.ToString("00") + ".json";
             while (File.Exists(backupPath))
             {
                 ++backupNumber;
-                backupPath = $"{filePath}.backup{backupNumber}.json";
+                backupPath = filePath + ".backup" + backupNumber.ToString("00") + ".json";
             }
             File.Copy(filePath, backupPath);
         }

@@ -13,12 +13,13 @@ A rough plan for future versions is here: [TODO.md](TODO.md)
    - OneOf to provide [tagged/discriminated unions/variants](https://en.wikipedia.org/wiki/Tagged_union) for compile time safety of such a pattern
    - TextCopy because .NET does not provide clipboard operations and it is a challenge to do it yourself for multiple platforms
    - see [LICENSES.md](LICENSES/LICENCES.md) for details
+1. Improvements in error handling, browsing experience, information provided
 1. Internal works
    - code cleanup
    - gitflow introduced
 
-_The version 2.0 has been made within 19 days, between 2023-11-18 and 2023-12-06._  
-_Working hours spent: 21._
+_The version 2.0 has been made within 21 days, between 2023-11-18 and 2023-12-08._  
+_Working hours spent: 24._
 
 # 1.0
 
