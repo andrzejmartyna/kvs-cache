@@ -2,6 +2,25 @@
 
 A rough plan for future versions is here: [TODO.md](TODO.md)
 
+# 2.0
+
+1. Important change in caching
+   - reading all subscriptions / key vaults / secrets at once was withdrawn as it took long minutes for a big set of items and slow network
+   - instead what is cached in this version is only the contents a user visits
+   - reload (Ctrl-R) is only done on the current level instead of clearing and rereading the whole cache
+   - it means also that statistics displays numbers of items cached instead of all items 
+1. Usage of open source third-party libraries
+   - OneOf to provide [tagged/discriminated unions/variants](https://en.wikipedia.org/wiki/Tagged_union) for compile time safety of such a pattern
+   - TextCopy because .NET does not provide clipboard operations and it is a challenge to do it yourself for multiple platforms
+   - see [LICENSES.md](LICENSES/LICENCES.md) for details
+1. Improvements in error handling, browsing experience, information provided
+1. Internal works
+   - code cleanup
+   - gitflow introduced
+
+_The version 2.0 has been made within 21 days, between 2023-11-18 and 2023-12-08._  
+_Working hours spent: 24._
+
 # 1.0
 
 This initial version of the tool:
@@ -24,5 +43,5 @@ This initial version of the tool:
      - by removing the cache file and rerun kvs-cache
      - automatically after hard coded value of 24h
 
-_The version 1.0 was made from 2023-10-28 to 2023-11-18._  
+_The version 1.0 has been made within 22 days, between 2023-10-28 and 2023-11-18._  
 _Working hours spent: 34._

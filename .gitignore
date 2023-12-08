@@ -4,4 +4,5 @@ obj/
 riderModule.iml
 /_ReSharper.Caches//_ReSharper.Caches/.idea
 .idea/
-kvs-cache.json
+*kvs-cache*.json
+kvs-cache.sln.DotSettings.user

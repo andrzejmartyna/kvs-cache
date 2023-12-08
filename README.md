@@ -9,14 +9,6 @@ Note that:
 
 kvs-cache is written using .NET 7 and C# 11.  
 
-## Important known issues in 1.0
-
-1. For version 1.0 I made a design mistake to cache all information upfront.  
-That's why if you have access to hundreds or thousands secrets you need to wait several minutes at first run or more...  (though if you eventually get it cached the speed of local browsing is brilliant :).  
-I plan to introduce lazy loading in next version but before that I disabled automatic refresh not to irritate anyone.   
-
-2. I'm struggling on providing good, consistent clipboard support which may mean that some secret values copied to clipboard may be useless, unfortunatelly 
-
 # Usage
 
 1. Clone the repo
@@ -24,20 +16,27 @@ I plan to introduce lazy loading in next version but before that I disabled auto
 1. Check if you have .NET 7: `dotnet --version`, if not, **install .NET 7 SDK first**
 1. Go to the repo folder in the command line / shell window
 1. Login to Azure `az login`
-2. Go down one more folder `cd kvs-cache`
+1. Go down one more folder `cd kvs-cache`
+1. Restore packages using `dotnet restore` 
 1. Run kvs-cache using `dotnet run`
 
 # General functionalities
 
 1. Works as a console application
-1. Finds all subscriptions, key vaults and secrets accessible
-1. Caches the information for immediate browsing
-1. Browsing and drill down/up through subscriptions, key vaults, and secrets
-1. Instant filter by entering word or words to be searched for
-1. Get value of a selected secret and copy it to clipboard
+1. Information browsing / searching
+   - At start it finds all Azure subscriptions you can access
+   - Allows to browse and drill down/up through subscriptions, key vaults, and secrets 
+   - Allows for instant filtering by entering word or words to be searched for
+1. Caching
+   - Caches places you visit for immediate access next time
+   - Displays age of cache
+   - Allows to refresh current level (Ctrl-R)
+1. Get secret values
+   - Get value of a selected secret and copy it to clipboard
 
 # More information
 
-- [ReleaseNotes.md](ReleaseNotes.md)
-- [TODO.md](TODO.md)
-- [LICENSE](LICENSE)
+- [Licenses of libraries used by KvsCache (thank you to all authors and contributors!)](LICENSES/LICENCES.md)
+- [Licence of KvsCache](LICENSE)
+- [ReleaseNotes](ReleaseNotes.md)
+- [TO DO](TODO.md)
