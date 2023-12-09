@@ -54,7 +54,10 @@ public class Browser
                 switch (key.Key)
                 {
                     case ConsoleKey.D:
-                        _onInfo?.Invoke(_state.Selected);
+                        if (_state.Selected != null)
+                        {
+                            _onInfo?.Invoke(_state.Selected);
+                        }
                         break;
                     case ConsoleKey.R:
                         key = ReloadItems(true);
@@ -70,7 +73,7 @@ public class Browser
             {
                 case ConsoleKey.Enter:
                 case ConsoleKey.RightArrow:
-                    if (_state.Count > 0)
+                    if (_state.Count > 0 && _state.Selected != null)
                     {
                         _onEnter(_state.Selected, _context);
                     }
@@ -199,7 +202,7 @@ public class Browser
             var items = BrowserItem.PackForBrowsing(chunk, parentItem);
             
             var previousWindow = _state?.Selection;
-            var previousSelection = _state?.Selected.DisplayName;
+            var previousSelection = _state?.Selected?.DisplayName;
             
             _parent = parentItem;
 
@@ -299,7 +302,7 @@ public class Browser
     {
         if (_state == null) return;
 
-        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state.Selected.DisplayName);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state.Selected?.DisplayName);
         _context.Console.SetColors(_context.Console.Highlighted);
         _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
         _context.Console.SetDefaultColors();

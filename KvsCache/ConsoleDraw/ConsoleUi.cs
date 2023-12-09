@@ -34,8 +34,10 @@ public class ConsoleUi
         _uiBuffer.Flush();
     }
 
-    public void WriteAt(int x, int y, string text)
+    public void WriteAt(int x, int y, string? text)
     {
+        if (string.IsNullOrEmpty(text)) return;
+        
         _uiBuffer.WriteAt(x, y, text);
         _cursor.X = x + text.Length;
         _cursor.Y = y;
