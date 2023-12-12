@@ -14,12 +14,12 @@ A rough plan for future versions is here: [TODO.md](TODO.md)
    - TextCopy because .NET does not provide clipboard operations and it is a challenge to do it yourself for multiple platforms
    - see [LICENSES.md](LICENSES/LICENCES.md) for details
 1. Improvements in error handling, browsing experience, information provided
-1. Internal works
+1. Technical stuff
    - code cleanup
-   - gitflow introduced
+   - started to use git flow
 
 _The version 2.0 has been made within 21 days, between 2023-11-18 and 2023-12-08._  
-_Working hours spent: 24._
+_Hours spent: 24._
 
 # 1.0
 
@@ -44,4 +44,4 @@ This initial version of the tool:
      - automatically after hard coded value of 24h
 
 _The version 1.0 has been made within 22 days, between 2023-10-28 and 2023-11-18._  
-_Working hours spent: 34._
+_Hours spent: 34._

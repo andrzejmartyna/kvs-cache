@@ -19,7 +19,7 @@ public class BrowseState
     }
 
     public BrowserItem this[int index] => Items[index];
-    public BrowserItem Selected => this[Selection.Selected];
+    public BrowserItem? Selected => Selection.Selected >= 0 && Selection.Selected < Items.Count ? this[Selection.Selected] : null;
 
     public void SetSelection(int firstDisplayed, int selected)
     {

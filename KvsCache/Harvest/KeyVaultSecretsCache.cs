@@ -46,7 +46,7 @@ public class KeyVaultSecretsCache
             }
             File.Copy(filePath, backupPath);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //eat it as the goal of this try-catch is to do its best to backup a file
         }
