@@ -2,6 +2,14 @@
 
 A rough plan for future versions is here: [TODO.md](TODO.md)
 
+# 2.1
+ 
+1. Identify base64 encoded value and decode
+
+# 2.0.1
+
+1. Issue fixed: Refresh ends with NullReferenceException if a list is empty due to filtering
+
 # 2.0
 
 1. Important change in caching
