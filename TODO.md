@@ -1,10 +1,5 @@
 # DONE
 
-- Issues fixed
-  - Issue: Refresh ends with NullReferenceException if a list is empty due to filtering 
-- NEW
-  - Identify base64 encoded value and decode
-
 # MUST 2.1
 
 - BIG: operation/context menu on secret/KV/subscription
