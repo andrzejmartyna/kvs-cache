@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using KvsCache.Browse;
 using KvsCache.ConsoleDraw;
 using KvsCache.Harvest;
@@ -158,8 +159,37 @@ public class Controller
         secretValueOrError.Switch(
             str =>
             {
+                var testForBase64 = Regex.IsMatch(str, @"^[a-zA-Z0-9\+/\s]*=*$");
+                var decodedFromBase64 = string.Empty;
+
+                if (testForBase64)
+                {
+                    var cleaned = Regex.Replace(str, @"\s+", string.Empty);
+                    cleaned = cleaned.PadRight(cleaned.Length / 4 * 4 + (cleaned.Length % 4 == 0 ? 0 : 4), '=');
+
+                    var buffer = new Span<byte>(new byte[cleaned.Length]);
+                    testForBase64 = Convert.TryFromBase64String(cleaned, buffer, out var bytesParsed);
+                    if (testForBase64)
+                    {
+                        decodedFromBase64 = System.Text.Encoding.UTF8.GetString(buffer[..bytesParsed]);
+                    }
+                }
+
+                var message = "Value of the secret was copied to the clipboard.";
+                if (testForBase64)
+                {
+                    message += Environment.NewLine + "It's base64 encoded. Press any key to decode.";
+                }
+                
                 ClipboardService.SetText(str);
-                _console.Message("Secret value", "Value of the secret was copied to the clipboard.", _console.GreenMessage);
+                _console.Message("Secret value", message, _console.GreenMessage);
+                
+                if (testForBase64)
+                {
+                    ClipboardService.SetText(decodedFromBase64);
+                    _console.Message("Secret value", "Value decoded from base64 was copied to the clipboard.", _console.GreenMessage);
+                }
+                
             },
             err => _console.Message("Error getting secret value", err.Message, _console.RedMessage)
         );

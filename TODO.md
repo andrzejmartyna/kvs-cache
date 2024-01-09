@@ -2,6 +2,8 @@
 
 - Issues fixed
   - Issue: Refresh ends with NullReferenceException if a list is empty due to filtering 
+- NEW
+  - Identify base64 encoded value and decode
 
 # MUST 2.1
 
@@ -46,6 +48,7 @@
   - clarify Feedback / contribution / communication
     - is my e-mail accessible?
     - is this valid: [this way](https://stackoverflow.com/a/49277449/669692)?
+    - this looks like a good github guidance: [https://github.com/andrzejmartyna/kvs-cache/community](https://github.com/andrzejmartyna/kvs-cache/community)
   - functionality to display list of licenses of third party libraries used
 - BIG: search through all objects (I bet instant filtering is more than enough for kvs-cache)
 - consider deconstruction instead of OneOf dependency
