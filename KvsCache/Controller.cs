@@ -20,11 +20,14 @@ public class Controller
     private readonly Harvester _harvester;
     private readonly ManualResetEvent _breakPressed = new(false);
 
+    public bool CanContinue { get; init; }
+
     public Controller(Rectangle operationRectangle)
     {
         _geometry = new BrowseGeometry(operationRectangle);
         _console = new ConsoleUi(_geometry);
         _harvester = new Harvester(_console, _geometry);
+        CanContinue = _harvester.PrepareCache();
     }
 
     public void Break()

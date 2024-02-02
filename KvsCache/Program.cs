@@ -23,6 +23,10 @@ for (var i = 0; i <= height; ++i)
 }
 
 var controller = new Controller(new Rectangle(0, Math.Max(0, Console.CursorTop - height), Math.Min(currentWidth, optimalWidth), Math.Min(currentHeight, optimalHeight)));
+if (!controller.CanContinue)
+{
+    return;    
+}
 
 Console.CancelKeyPress += delegate (object? _, ConsoleCancelEventArgs e)
 {
