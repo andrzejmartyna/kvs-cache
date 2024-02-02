@@ -118,6 +118,15 @@ public class ConsoleUi
         SetDefaultColors();
     }
 
+    public void Menu(string title, string[] items, ConsoleColors colors)
+    {
+        PushSnapshot();
+        //TODO: make an interactive menu using arrow keys, Enter, Esc, etc.
+        DisplayBoxedText(title, string.Join(Environment.NewLine, items), colors);
+        Console.ReadKey(true);
+        PopSnapshot();
+    }
+    
     public void Message(string title, string message, ConsoleColors colors)
     {
         PushSnapshot();
