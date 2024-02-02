@@ -22,7 +22,7 @@ public class KeyVaultSecretsRepository
         {
             var client = new ArmClient(_credentials);
             return client.GetSubscriptions().Select(s =>
-                new Subscription(s.Id, s.Data.DisplayName, s.Data.ManagedByTenants.ToString())).ToList();
+                new Subscription(s.Id, s.Data.DisplayName, s.Data.TenantId?.ToString())).ToList();
         });
 
     public OneOrError<List<KeyVault>> GetKeyVaults(string subscriptionName) =>

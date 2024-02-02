@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using KvsCache.Browse;
@@ -19,26 +20,29 @@ public class Controller
     private readonly Harvester _harvester;
     private readonly ManualResetEvent _breakPressed = new(false);
 
+    public bool CanContinue { get; init; }
+
     public Controller(Rectangle operationRectangle)
     {
         _geometry = new BrowseGeometry(operationRectangle);
         _console = new ConsoleUi(_geometry);
         _harvester = new Harvester(_console, _geometry);
+        CanContinue = _harvester.PrepareCache();
     }
 
     public void Break()
     {
         _breakPressed.Set();
     }
-    
+
     public void Execute(int testSleepInMs)
     {
         _harvester.TestSleepInMs = testSleepInMs;
-        
+
         Console.CursorVisible = false;
-        
+
         InitialDraw();
-        
+
         BrowseSubscriptions();
 
         OnExit();
@@ -47,12 +51,12 @@ public class Controller
     private void BrowseSubscriptions()
     {
         var browsingContext = new BrowseContext(_console);
-        browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, null, "Subscriptions", false));
-        browsingContext.AddBrowser(new Browser(browsingContext, BrowseSecrets, null, "KeyVaults", true));
-        browsingContext.AddBrowser(new Browser(browsingContext, ReadSecretValue, InfoSecretValue, "Secrets", true));
-        
+        browsingContext.AddBrowser(new Browser(browsingContext, BrowseKeyVaults, ContextMenuSubscription, null, "Subscriptions", false));
+        browsingContext.AddBrowser(new Browser(browsingContext, BrowseSecrets, ContextMenuKeyVault,null, "KeyVaults", true));
+        browsingContext.AddBrowser(new Browser(browsingContext, ReadSecretValue, ContextMenuSecret, InfoSecretValue, "Secrets", true));
+
         DrawStatistics();
-        
+
         var cts = new CancellationTokenSource();
         browsingContext.SetCancellationToken(cts.Token);
 
@@ -64,13 +68,42 @@ public class Controller
             browsingTcs.SetResult(true);
         }, browsingContext.CancellationToken);
 
-        var  browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
+        var browsingWaitHandle = ((IAsyncResult)browsingTcs.Task).AsyncWaitHandle;
         var exitWays = WaitHandle.WaitAny(new[] { browsingWaitHandle, _breakPressed });
         if (exitWays == 1)
         {
             cts.Cancel();
             browsingTask.Wait();
         }
+    }
+
+    private void ExecuteUrl(string url)
+    {
+        ClipboardService.SetText(url);
+        Process.Start(new ProcessStartInfo { UseShellExecute = true, FileName = url });
+    }
+
+    private void ContextMenuSubscription(BrowserItem selected, BrowseContext context)
+    {
+        if (selected.Self is not Subscription subscription) return;
+        ExecuteUrl($"https://portal.azure.com/#@{subscription.TenantId}/resource/{subscription.Id}/overview");
+        //_console.Menu("Subscription", new [] {"Go to Portal"}, _console.GreenMessage);
+    }
+
+    private void ContextMenuKeyVault(BrowserItem selected, BrowseContext context)
+    {
+        if (selected.Self is not KeyVault keyvault) return;
+        if (selected.Parent == null || selected.Parent.Self is not Subscription subscription) return;
+        ExecuteUrl($"https://portal.azure.com/#@{subscription.TenantId}/resource/{keyvault.Id}/secrets");
+        //_console.Menu("Key Vault", new [] {"Go to Portal"}, _console.GreenMessage);
+    }
+
+    private void ContextMenuSecret(BrowserItem selected, BrowseContext context)
+    {
+        if (selected.Self is not Secret secret) return;
+        if (selected.Parent == null || selected.Parent.Self is not KeyVault keyvault || keyvault.Id == null) return;
+        ExecuteUrl($"https://portal.azure.com/#view/Microsoft_Azure_KeyVault/ListObjectVersionsRBACBlade/~/overview/objectType/secrets/objectId/{Uri.EscapeDataString(secret.Id)}/vaultResourceUri/{Uri.EscapeDataString(keyvault.Id)}/vaultId/");
+        //_console.Menu("Secret", new [] {"Go to Portal"}, _console.GreenMessage);
     }
 
     private void BrowseKeyVaults(BrowserItem selected, BrowseContext context)
@@ -245,7 +278,7 @@ public class Controller
         _console.WriteAt(info.Left, info.Top + 2, $"Secrets cached: {_harvester.SecretCount}");
 
         var tips = _geometry.TipsRectangle;
-        _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc");
+        _console.WriteAt(tips.Left, tips.Top, "Arrow keys / Enter / Esc / > (Go To Portal)");
         const string commands = "Ctrl-R Refresh / Ctrl-C Exit";
         _console.WriteAt(tips.Right - commands.Length + 1, tips.Top, commands);
 

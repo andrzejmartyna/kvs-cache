@@ -10,7 +10,7 @@ public class Harvester
     private readonly string _cacheFile = "kvs-cache.json";
     private readonly KeyVaultSecretsRepository _keyVaultSecretsRepository = new();
 
-    private readonly KeyVaultSecretsCache _cache = new();
+    private KeyVaultSecretsCache _cache = new();
 
     public Subscriptions Subscriptions => _cache.Subscriptions;
 
@@ -24,7 +24,79 @@ public class Harvester
     {
         _console = console;
         _geometry = geometry;
-        _cache = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
+    }
+
+    public bool PrepareCache()
+    {
+        ErrorInfo? error = null;
+
+        var latestSchemaVersion = new KeyVaultSecretsCache().SchemaVersion;
+
+        var fileSchemaVersionOrError = KeyVaultSecretsCache.ReadSchemaVersionFromFile(_cacheFile);
+        if (fileSchemaVersionOrError.TryPickT1(out var errorReadingFileSchemaVersion, out var fileSchemaVersion))
+        {
+            error = errorReadingFileSchemaVersion;
+        }
+        else
+        {
+            if (fileSchemaVersion <= 0 || fileSchemaVersion >= decimal.Parse(latestSchemaVersion))
+            {
+                var cacheOrError = KeyVaultSecretsCache.ReadFromFile(_cacheFile);
+                if (cacheOrError.TryPickT1(out var errorReadingCache, out var cache))
+                {
+                    error = errorReadingCache;
+                }
+                else
+                {
+                    _cache = cache;
+                    _cache.SchemaVersion = latestSchemaVersion;
+                    return true;
+                }
+            }
+        }
+
+        var saveColor = Console.ForegroundColor;
+
+        if (error != null)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"ERROR: Error reading the cache file {_cacheFile}.");
+            Console.WriteLine($"Error is: {error.Message}");
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"WARNING: Schema of the cache file {_cacheFile} is {fileSchemaVersion}.");
+            Console.WriteLine("This is incompatible with the current version of kvs-cache.");
+        }
+
+        Console.WriteLine("kvs-cache cannot use the file.");
+        Console.WriteLine("Backup of the file will be made and the application will start to build its new cache from scratch.");
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Press any key to continue");
+        Console.ForegroundColor = saveColor;
+        Console.ReadKey();
+
+        var okOrError = KeyVaultSecretsCache.BackupCacheFile(_cacheFile);
+        if (okOrError.TryPickT1(out var errorBackuping, out var backupFile))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"ERROR: Cannot backup file {_cacheFile}.");
+            Console.WriteLine($"Error is: {errorBackuping.Message}");
+            Console.WriteLine();
+            Console.WriteLine("Backup or remove the file manually and rerun kvs-cache.");
+            Console.ForegroundColor = saveColor;
+            return false;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"Backup file made: {backupFile}");
+        Console.WriteLine("Press any key to continue");
+        Console.ForegroundColor = saveColor;
+        Console.ReadKey();
+
+        return true;
     }
 
     public void WriteCache()
