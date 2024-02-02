@@ -1,10 +1,17 @@
 # DONE
 
-# MUST 2.1
+- N/A
 
+# MUST 2.3
+
+- distribution as a ready to use, compiled tool (currently it requires user to install .NET SDK and build the tool)
 - BIG: operation/context menu on secret/KV/subscription
   - Set secret value
-  - Get/set secret value using base64
+  - base64
+    - set secret value using base64
+    - differentiate message based on assessment how likely the secret is base64?
+      - probably something simple - like based on length: <10 probably not, <20 might not, <50 may be, <100 probably, >= 100 most probably
+      - of course in all cases secret should be decoded but the message should **better prepare user for false positives**
   - Describe - full info in Json about Subscription(s)/KeyVault/Secret
     - URLs to Azure Portal resources in output Json
   - Generate command to get/set value using scripts like Powershell, bash
@@ -13,7 +20,6 @@
   - Issue: Ctrl-C does not work if a lengthy operation that queries Azure is under way
   - Issue: Ctrl-R hangs sometimes
   - Issue: Ctrl-C on the message does not work immediately but after exiting the message using another key
-- ready to use distribution (1.0 requires .NET SDK and building)
 
 # SHOULD
 
