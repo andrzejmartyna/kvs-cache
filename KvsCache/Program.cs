@@ -5,6 +5,7 @@ const int minHeight = 10;
 const int optimalHeight = 20;
 const int minWidth = 70;
 const int optimalWidth = 80;
+
 var currentHeight = Console.WindowHeight;
 var currentWidth = Console.WindowWidth;
 if (currentHeight < minHeight || currentWidth < minHeight)
@@ -21,9 +22,13 @@ for (var i = 0; i <= height; ++i)
     Console.WriteLine();
 }
 
-var controller = new Controller(new Rectangle(0,  Math.Max(0, Console.CursorTop - height), Math.Min(currentWidth, optimalWidth), Math.Min(currentHeight, optimalHeight)));
+var controller = new Controller(new Rectangle(0, Math.Max(0, Console.CursorTop - height), Math.Min(currentWidth, optimalWidth), Math.Min(currentHeight, optimalHeight)));
+if (!controller.CanContinue)
+{
+    return;    
+}
 
-Console.CancelKeyPress += delegate(object? _, ConsoleCancelEventArgs e)
+Console.CancelKeyPress += delegate (object? _, ConsoleCancelEventArgs e)
 {
     controller.Break();
     e.Cancel = true;

@@ -14,6 +14,7 @@ public class Browser
     private BrowseState? _state;
     
     private readonly Action<BrowserItem, BrowseContext> _onEnter;
+    private readonly Action<BrowserItem, BrowseContext> _onMenu;
     private readonly Action<BrowserItem>? _onInfo;
     private readonly bool _exitOnLeft;
 
@@ -25,11 +26,12 @@ public class Browser
     private Dictionary<string, BrowseState> _filteredStates = new();
     private List<BrowserItem> _allItems = new();
     
-    public Browser(BrowseContext context, Action<BrowserItem, BrowseContext> onEnter, Action<BrowserItem>? onInfo, string itemsName, bool exitOnLeft)
+    public Browser(BrowseContext context, Action<BrowserItem, BrowseContext> onEnter, Action<BrowserItem, BrowseContext> onMenu, Action<BrowserItem>? onInfo, string itemsName, bool exitOnLeft)
     {
         _context = context;
         _exitOnLeft = exitOnLeft;
         _onEnter = onEnter;
+        _onMenu = onMenu;
         _onInfo = onInfo;
         _rectangle = _context.Console.Geometry.BrowsingRectangle;
         _itemsName = itemsName;
@@ -159,7 +161,14 @@ public class Browser
                     }
                     break;
                 default:
-                    if (char.IsLetterOrDigit(key.KeyChar) || ' ' == key.KeyChar || '-' == key.KeyChar || '_' == key.KeyChar)
+                    if (key.KeyChar == '>')
+                    {
+                        if (_onMenu != null && _state.Count > 0 && _state.Selected != null)
+                        {
+                            _onMenu(_state.Selected, _context);
+                        }
+                    }
+                    else if (char.IsLetterOrDigit(key.KeyChar) || ' ' == key.KeyChar || '-' == key.KeyChar || '_' == key.KeyChar)
                     {
                         ApplyFilter(_state.Filter + key.KeyChar);
                     }
@@ -302,13 +311,15 @@ public class Browser
     {
         if (_state == null) return;
 
-        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state.Selected?.DisplayName);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, ValidateItemWidth(_state.Selected?.DisplayName));
         _context.Console.SetColors(_context.Console.Highlighted);
-        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, ValidateItemWidth(_state[newSelection].DisplayName));
         _context.Console.SetDefaultColors();
         
         _state.SetSelection(_state.Selection.FirstDisplayed, newSelection);
     }
+
+    private string? ValidateItemWidth(string? item) => string.IsNullOrEmpty(item) || item.Length <= _rectangle.Width ? item : item[.._rectangle.Width];
 
     private void RedrawConsole()
     {
@@ -323,7 +334,7 @@ public class Browser
             {
                 _context.Console.SetColors(_context.Console.Highlighted);
             }
-            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[y].DisplayName);
+            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, ValidateItemWidth(_state[y].DisplayName));
             if (y == _state.Selection.Selected)
             {
                 _context.Console.SetDefaultColors();

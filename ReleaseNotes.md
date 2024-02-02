@@ -2,6 +2,12 @@
 
 A rough plan for future versions is here: [TODO.md](TODO.md)
 
+# 2.2
+
+1. NEW: "Go To Portal" function using ">" which opens default browser with Azure Portal (the URL is copied into the clipboard too)
+1. FIXED: long secret names takes too much space - they distort right edge of the application box
+1. IMPROVED: error handling reading and backuping the cache and its schema version
+
 # 2.1
  
 1. Identify base64 encoded value and decode
