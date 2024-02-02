@@ -311,13 +311,15 @@ public class Browser
     {
         if (_state == null) return;
 
-        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, _state.Selected?.DisplayName);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + _state.Selection.Selected - _state.Selection.FirstDisplayed, ValidateItemWidth(_state.Selected?.DisplayName));
         _context.Console.SetColors(_context.Console.Highlighted);
-        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, _state[newSelection].DisplayName);
+        _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + newSelection - _state.Selection.FirstDisplayed, ValidateItemWidth(_state[newSelection].DisplayName));
         _context.Console.SetDefaultColors();
         
         _state.SetSelection(_state.Selection.FirstDisplayed, newSelection);
     }
+
+    private string? ValidateItemWidth(string? item) => string.IsNullOrEmpty(item) || item.Length <= _rectangle.Width ? item : item[.._rectangle.Width];
 
     private void RedrawConsole()
     {
@@ -332,7 +334,7 @@ public class Browser
             {
                 _context.Console.SetColors(_context.Console.Highlighted);
             }
-            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, _state[y].DisplayName);
+            _context.Console.WriteAt(_rectangle.Left, _rectangle.Top + idx, ValidateItemWidth(_state[y].DisplayName));
             if (y == _state.Selection.Selected)
             {
                 _context.Console.SetDefaultColors();
