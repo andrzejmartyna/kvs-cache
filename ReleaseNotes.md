@@ -32,12 +32,13 @@ A rough plan for future versions is here: [TODO.md](TODO.md)
    - code cleanup
    - started to use git flow
 
-_The version 2.0 has been made within 21 days, between 2023-11-18 and 2023-12-08._  
-_Hours spent: 24._
+_The version 2.0 has been made in 14 days, in November, December 2023. Time spent: 24h._  
+_Other 2.x versions made in 8 days, in December 2023 - February 2024. Time spent: 8h (2.1 - 3h, 2.2 - 5h)._
 
 # 1.0
 
 This initial version of the tool:
+
 1. Works as a console application
 1. Finds all Subscriptions, Key vaults and secrets accessible
    - you must be logged into your Azure account
@@ -57,5 +58,4 @@ This initial version of the tool:
      - by removing the cache file and rerun kvs-cache
      - automatically after hard coded value of 24h
 
-_The version 1.0 has been made within 22 days, between 2023-10-28 and 2023-11-18._  
-_Hours spent: 34._
+_The version 1.0 has been made in 19 days, in October, November 2023. Time spent: 34h._  
