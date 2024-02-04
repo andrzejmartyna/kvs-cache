@@ -9,6 +9,7 @@
 
 # SHOULD
 
+- better handle situations when user is not logged in to Azure (instead of current red exception on the whole application box)
 - work from inside Docker including seamless Azure credentials handling
 - auto write/save cache periodically
 - BIG: operation/context menu on secret/KV/subscription
@@ -49,7 +50,7 @@
       - [https://github.com/andrzejmartyna/kvs-cache/community](https://github.com/andrzejmartyna/kvs-cache/community)
       - [Karl Fogel, Producing Open Source Software - How to Run a Successful Free Software Project](https://producingoss.com/)
   - functionality to display list of licenses of third party libraries used
-  - comment in [LICENSES.md](LICENSES/LICENSES.md) on all OpenSource dependencies: [https://github.com/andrzejmartyna/kvs-cache/network/dependencies](https://github.com/andrzejmartyna/kvs-cache/network/dependencies)
+  - verify if all licenses should be copied and included in my repo - if so, update [LICENSES.md](LICENSES/LICENSES.md)
 - BIG: search through all objects (I bet instant filtering is more than enough for kvs-cache)
 - C#: consider deconstruction instead of OneOf dependency
 
