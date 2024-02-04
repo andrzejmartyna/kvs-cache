@@ -5,16 +5,16 @@ A rough plan for future versions is here: [TODO.md](TODO.md)
 # 2.2
 
 1. NEW: "Go To Portal" function using ">" which opens default browser with Azure Portal (the URL is copied into the clipboard too)
-1. FIXED: long secret names takes too much space - they distort right edge of the application box
+1. FIXED: long secret names take too much space - they distort right edge of the application box
 1. IMPROVED: error handling reading and backuping the cache and its schema version
 
 # 2.1
  
-1. Identify base64 encoded value and decode
+1. NEW: Identify base64 encoded value and decode
 
 # 2.0.1
 
-1. Issue fixed: Refresh ends with NullReferenceException if a list is empty due to filtering
+1. FIXED: Refresh ends with NullReferenceException if a list is empty due to filtering
 
 # 2.0
 

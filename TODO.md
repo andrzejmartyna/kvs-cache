@@ -5,34 +5,30 @@
 # MUST 2.3
 
 - distribution as a ready to use, compiled tool (currently it requires user to install .NET SDK and build the tool)
+- provide CHANGELOG.md, versioning and tags as good projects do
+
+# SHOULD
+
+- work from inside Docker including seamless Azure credentials handling
+- auto write/save cache periodically
 - BIG: operation/context menu on secret/KV/subscription
-  - Set secret value
   - base64
-    - set secret value using base64
     - differentiate message based on assessment how likely the secret is base64?
       - probably something simple - like based on length: <10 probably not, <20 might not, <50 may be, <100 probably, >= 100 most probably
       - of course in all cases secret should be decoded but the message should **better prepare user for false positives**
   - Describe - full info in Json about Subscription(s)/KeyVault/Secret
-    - URLs to Azure Portal resources in output Json
   - Generate command to get/set value using scripts like Powershell, bash
-  - or instead of everything above - open browser with the proper url - let the user do anything there
+- BIG: Recent
+- BIG: Favorites
 - Issues
   - Issue: Ctrl-C does not work if a lengthy operation that queries Azure is under way
   - Issue: Ctrl-R hangs sometimes
   - Issue: Ctrl-C on the message does not work immediately but after exiting the message using another key
 
-# SHOULD
-
-- BIG: Recent
-- BIG: Favorites
-- work from inside Docker including seamless Azure credentials handling
-- auto write/save cache periodically 
-- provide CHANGELOG.md, versioning and tags as good projects do
-- parametrize app settings
-
 # COULD
 
 - BIG: implement kvs-cache as an extension to VS Code
+- parametrize app settings
 - Quality
   - unit tests
   - BIG: model tests
@@ -49,11 +45,16 @@
   - clarify Feedback / contribution / communication
     - is my e-mail accessible?
     - is this valid: [this way](https://stackoverflow.com/a/49277449/669692)?
-    - this looks like a good github guidance: [https://github.com/andrzejmartyna/kvs-cache/community](https://github.com/andrzejmartyna/kvs-cache/community)
+    - these looks like good guidance:
+      - [https://github.com/andrzejmartyna/kvs-cache/community](https://github.com/andrzejmartyna/kvs-cache/community)
+      - [Karl Fogel, Producing Open Source Software - How to Run a Successful Free Software Project](https://producingoss.com/)
   - functionality to display list of licenses of third party libraries used
+  - comment in [LICENSES.md](LICENSES/LICENSES.md) on all OpenSource dependencies: [https://github.com/andrzejmartyna/kvs-cache/network/dependencies](https://github.com/andrzejmartyna/kvs-cache/network/dependencies)
 - BIG: search through all objects (I bet instant filtering is more than enough for kvs-cache)
-- consider deconstruction instead of OneOf dependency
+- C#: consider deconstruction instead of OneOf dependency
 
 # WILL NOT
 
-- N/A
+- Set/change anything e.g. secret value
+  - This is because kvs-cache is a purely read-only tool
+  - The best kvs-cache can do to support changes is to direct user to Azure Portal or generate code to change something on your own
