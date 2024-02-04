@@ -26,7 +26,7 @@ A rough plan for future versions is here: [TODO.md](TODO.md)
 1. Usage of open source third-party libraries
    - OneOf to provide [tagged/discriminated unions/variants](https://en.wikipedia.org/wiki/Tagged_union) for compile time safety of such a pattern
    - TextCopy because .NET does not provide clipboard operations and it is a challenge to do it yourself for multiple platforms
-   - see [LICENSES.md](LICENSES/LICENCES.md) for details
+   - see [LICENSES.md](LICENSES/LICENSES.md) for details
 1. Improvements in error handling, browsing experience, information provided
 1. Technical stuff
    - code cleanup

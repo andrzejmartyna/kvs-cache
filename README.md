@@ -36,7 +36,7 @@ kvs-cache is written using .NET 7 and C# 11.
 
 # More information
 
-- [Licenses of libraries used by KvsCache (thank you to all authors and contributors!)](LICENSES/LICENCES.md)
+- [Licenses of libraries used by KvsCache (thank you to all authors and contributors!)](LICENSES/LICENSES.md)
 - [Licence of KvsCache](LICENSE)
 - [ReleaseNotes](ReleaseNotes.md)
 - [TO DO](TODO.md)
