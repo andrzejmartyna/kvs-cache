@@ -4,8 +4,10 @@
 
 # MUST 2.3
 
+- consider how to approach clipboard securely - should it be cleaned on exit or after some time? How e.g. 1Password deals with password put in clipboard?
 - distribution as a ready to use, compiled tool (currently it requires user to install .NET SDK and build the tool)
 - provide CHANGELOG.md, versioning and tags as good projects do
+- move this TODO file to "Issues" GitHub functionality
 
 # SHOULD
 
