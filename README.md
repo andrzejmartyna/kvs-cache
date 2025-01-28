@@ -7,13 +7,13 @@ Note that:
 - secret values are not cached locally nor displayed on the screen
 - you can get the clipboard contents and paste it wherever you need
 
-kvs-cache is written using .NET 7 and C# 11.  
+kvs-cache is written using .NET 8 and C# 11.  
 
 # Usage
 
 1. Clone the repo
 1. Execute a command line / shell window
-1. Check if you have .NET 7: `dotnet --version`, if not, **install .NET 7 SDK first**
+1. Check if you have .NET 8: `dotnet --version`, if not, **install .NET 8 SDK first**
 1. Go to the repo folder in the command line / shell window
 1. Login to Azure `az login`
 1. Go down one more folder `cd kvs-cache`
