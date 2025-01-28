@@ -2,6 +2,12 @@
 
 A rough plan for future versions is here: [TODO.md](TODO.md)
 
+# 3.0
+
+1. Usage of .NET 7 upgraded to .NET 8
+2. Nuget packages upgraded
+3. Writing the cache to disk right after anything was acquired from Azure
+
 # 2.2
 
 1. NEW: "Go To Portal" function using ">" which opens default browser with Azure Portal (the URL is copied into the clipboard too)

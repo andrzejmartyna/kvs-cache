@@ -132,7 +132,13 @@ public class Harvester
         {
             return chunk.SetErrorState(error);
         }
-        return chunk.SetCachedState(list.Cast<DataItem>().ToList());
+
+        var result = chunk.SetCachedState(list.Cast<DataItem>().ToList());
+
+        //TODO: This should be done asynchronously however for now the bigger issue is that cache is not written until someone exits the application
+        //TODO: thus it's better to write it everytime something new was reloaded
+        WriteCache();
+        return result;
     }
     
     //TODO: Remove dependency of Harvester on UI
